@@ -1,17 +1,27 @@
+"""
+This module consists of the most important objects of the simulator.
+There are restaurant's initialization with custom parameters.
+Also average intervals between requests according to current time are calculated.
+"""
+
 import json
 from restaurant import *
 
 
 class RequestInterval:
+    """
+    Calculating average intervals between requests according to current time in MINUTES
+    """
     def __init__(self, total, item):
         self.fromInterval = item['from']
         self.toInterval = item['to']
-        # interval in minutes
         self.interval = 60 / (total * item['part'] / (self.toInterval - self.fromInterval))
 
 
 class Model:
-
+    """
+    Initializing restaurant's parameters
+    """
     def next_request(self):
         pass
 
