@@ -92,7 +92,6 @@ class Model:
         self.eating_time = mode['eating_time']
         self.intervals = self.init_work_mode(mode)
         self.global_time = self.work_time_from
-        self.next_events = []
-        self.next_events.append(Event(self.global_time, RequestEvent(1)))
+        self.next_events = [Event(self.global_time, RequestEvent(1))]
         self.count = 0
         self.lost_counter = 0

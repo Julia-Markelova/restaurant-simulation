@@ -18,12 +18,14 @@ def waiter_service(waiter, model, request):
         dish_count += randrange(0, 3, 1)
 
     for dish in range(dish_count):
-        model.next_events.append(
-            Event(
-                model.global_time + delay + expovariate(1 / model.cooking_time),
-                DishEvent(request)
-            )
-        )
+        pass
+    # TODO: implement CookerCallEvent
+#        model.next_events.append(
+#            Event(
+#                model.global_time + delay + expovariate(1 / model.cooking_time),
+#                DishEvent(request)
+#            )
+#        )
 
     model.next_events.append(Event(model.global_time + delay, WaiterFreeEvent(waiter)))
 
@@ -88,7 +90,7 @@ class WaiterFreeEvent:
         if dishes:
             self.waiter.available = False
             dish = dishes[0]
-            delay = expovariate(1/300)
+            delay = expovariate(1 / 300)
             model.dishes.remove(dish)
             model.next_events.append(Event(model.global_time + delay, WaiterFreeEvent(self.waiter)))
             model.next_events.append(Event(model.global_time + delay + expovariate(1 / model.eating_time),
@@ -109,6 +111,7 @@ class LeaveEvent:
     """
     If request is waiting more then N minutes, we will lost it
     """
+
     def handle(self, model):
         if self.request.status == State.WAITING:
             self.request.table.available = True
@@ -147,12 +150,10 @@ class RequestEvent:
         Increment counter of requests
         """
         next_request_time = round(expovariate(1 / model.current_request_mean()))
-        model.next_events.append(Event(model.global_time + next_request_time,
-                                       RequestEvent(people_count)))
+        model.next_events.append(Event(model.global_time + next_request_time, RequestEvent(people_count)))
 
     def __init__(self, size):
         self.size = size
         self.table = None
         self.status = State.OK
         # eating_time?
-
