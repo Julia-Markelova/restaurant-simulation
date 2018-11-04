@@ -1,7 +1,9 @@
+
 class Table:
     def __init__(self, size):
         self.size = size
         self.available = True
+        self.owner = None
 
 
 class Waiter:
@@ -15,3 +17,7 @@ class Cooker:
         self.cooking_time = cooking_time
 
 
+class Dish:
+    def __init__(self, request):
+        self.is_ready = False
+        self.request = request

@@ -5,6 +5,28 @@ Events are saved in a list with their starting time and a handle function.
 
 from random import expovariate, choices, randrange
 
+from states import State
+
+
+def waiter_service(waiter, model, request):
+    waiter.available = False
+    delay = 0
+    dish_count = 0
+
+    for human in range(request.size):
+        delay += expovariate(1 / waiter.service_time)
+        dish_count += randrange(0, 3, 1)
+
+    for dish in range(dish_count):
+        model.next_events.append(
+            Event(
+                model.global_time + delay + expovariate(1 / model.cooking_time),
+                DishEvent(request)
+            )
+        )
+
+    model.next_events.append(Event(model.global_time + delay, WaiterFreeEvent(waiter)))
+
 
 class Event:
     def handle(self, model):
@@ -16,6 +38,7 @@ class Event:
 
 
 class DishEvent:
+    # TODO: write any logic about cookers
     def handle(self, model):
         pass
 
@@ -27,8 +50,8 @@ class WaiterEvent:
     """
     Check for free waiter and seize them.
     Calculate delay-time and generate dishes.
-    If there is no free waiters, people will be waiting more or leave the restaurant.
-    Probability of leaving is growing each time human wait.
+    If there is no free waiters, people will wait for N minutes.
+    If nobody is coming, person will leave the restaurant.
     """
 
     def handle(self, model):
@@ -36,40 +59,63 @@ class WaiterEvent:
 
         if waiters:
             waiter = waiters[0]
-            waiter.available = False
-            delay = 0
-            dish_count = 0
-
-            for human in range(self.request.size):
-                delay += expovariate(1 / waiter.service_time)
-                dish_count += randrange(0, 3, 1)
-
-            for dish in range(dish_count):
-                model.next_events.append(
-                    Event(
-                        model.global_time + delay + expovariate(1 / model.cooking_time),
-                        DishEvent(self.request)
-                    )
-                )
-
-            model.next_events.append(Event(model.global_time + delay, WaiterFreeEvent(waiter)))
+            waiter_service(waiter, model, self.request)
 
         else:
-            pass
-            #  TODO: doing sth if no free waiters
+            self.request.state = State.WAITING
+            model.next_events.append(Event(model.global_time + expovariate(1 / 600),
+                                           LeaveEvent(self.request)))
 
     def __init__(self, request):
         self.request = request
+
+
+class EatingFinishEvent:
+    def handle(self, model):
+        # TODO: asking for a bill or for extra dish
+        self.req.table.available = True
+
+    def __init__(self, req):
+        self.req = req
 
 
 class WaiterFreeEvent:
 
     def handle(self, model):
         self.waiter.available = True
-        # TODO: check kitchen, check tables
+        dishes = list(filter(lambda d: d.is_ready, model.dishes))
+
+        if dishes:
+            self.waiter.available = False
+            dish = dishes[0]
+            delay = expovariate(1/300)
+            model.dishes.remove(dish)
+            model.next_events.append(Event(model.global_time + delay, WaiterFreeEvent(self.waiter)))
+            model.next_events.append(Event(model.global_time + delay + expovariate(1 / model.eating_time),
+                                           EatingFinishEvent(dish.request)))
+
+        else:
+            tables = list(filter(lambda t: not t.available and t.owner.status == State.WAITING, model.tables))
+
+            if tables:
+                request = tables[0].owner
+                waiter_service(self.waiter, model, request)
 
     def __init__(self, waiter):
         self.waiter = waiter
+
+
+class LeaveEvent:
+    """
+    If request is waiting more then N minutes, we will lost it
+    """
+    def handle(self, model):
+        if self.request.status == State.WAITING:
+            self.request.table.available = True
+            model.lost_counter += 1
+
+    def __init__(self, request):
+        self.request = request
 
 
 class RequestEvent:
@@ -83,8 +129,9 @@ class RequestEvent:
         tables = list(filter(lambda t: t.size >= self.size and t.available, model.tables))
 
         if tables:
-            table = tables[0]
-            table.available = False
+            self.table = tables[0]
+            self.table.available = False
+            self.table.owner = self
             model.count += 1
             # here we have some time to read a menu before calling a waiter
             model.next_events.append(Event(model.global_time + expovariate(1 / 300),
@@ -105,5 +152,7 @@ class RequestEvent:
 
     def __init__(self, size):
         self.size = size
+        self.table = None
+        self.status = State.OK
         # eating_time?
 

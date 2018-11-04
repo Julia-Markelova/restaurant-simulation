@@ -74,6 +74,7 @@ class Model:
         self.tables = []
         self.waiters = []
         self.cookers = []
+        self.dishes = []
 
         for table_class in params['tables']:
             for index in range(table_class['count']):
