@@ -13,6 +13,7 @@
   "cookers": 10,
   "requests": {
     "average_per_day": 300,
+    "eating_time": 20,
     "class_probability": {
       "1": 0.1,
       "2": 0.5,
@@ -21,6 +22,5 @@
     }
   },
   "cooking_time": 20,
-  "service_time": 5,
-  "eating_time": 20
+  "service_time": 5
 }

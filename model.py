@@ -1,13 +1,18 @@
 import json
+from restaurant import *
 
 
 class Model:
+
     def __init__(self, data):
         params = json.load(data)
-        self.tables = params['tables']
-        self.waiters = params['waiters']
-        self.cookers = params['cookers']
+        cooking_time = params['cooking_time']
+        service_time = params['service_time']
+        self.tables = []
+
+        for table_class in params['tables']:
+            self.tables.extend([Table(table_class['size'])] * table_class['count'])
+
+        self.waiters = [Waiter(service_time)] * params['waiters']
+        self.cookers = [Cooker(cooking_time)] * params['cookers']
         self.requests = params['requests']
-        self.cooking_time = params['cooking_time']
-        self.service_time = params['service_time']
-        self.eating_time = params['eating_time']
