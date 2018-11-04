@@ -17,7 +17,5 @@ class Cooker:
 
 
 class Request:
-    def __init__(self, size, probability, eating_time):
+    def __init__(self, size):
         self.size = size
-        self.probability = probability
-        self.eating_time = eating_time
