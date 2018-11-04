@@ -2,11 +2,12 @@
 This module consists of the most important objects of the simulator.
 There are restaurant's initialization with custom parameters.
 Also average intervals between requests according to current time are calculated.
+According to the intervals and probability of count of people requests are generating.
 """
 
 import json
-from random import expovariate, choices
 from restaurant import *
+from generating import *
 
 
 class RequestInterval:
@@ -20,29 +21,24 @@ class RequestInterval:
         self.interval = 60 / (total * item['part'] / (self.toInterval - self.fromInterval))
 
 
-class Event:
-    def __init__(self, when, what):
-        self.when = when
-        self.what = what
-
-
 class Model:
 
-    def next_request(self, mean):
-        people_count = choices(list(self.class_probability.keys()), list(self.class_probability.values()))
-        next_request_time = expovariate(1 / mean)
-        request = Request(people_count)
-        self.next_events.append(
-            Event(
-                next_request_time,
-                Request(choices(list(self.class_probability.keys()), list(self.class_probability.values())))
-            )
-        )
-
-        return request
-
     def run(self):
-        pass
+        while self.global_time < self.work_time_to:
+            for event in filter(lambda e: e.when == self.global_time, self.next_events):
+                event.handle(self)
+                self.next_events.remove(event)
+
+            self.global_time += 1
+
+    def current_request_mean(self):
+        current_interval = list(filter(
+            lambda interval:
+            interval.fromInterval * 60 * 60 < self.work_time_from +
+            self.global_time < interval.toInterval * 60 * 60,
+            self.intervals))[0]
+
+        return current_interval.interval
 
     def init_work_mode(self, mode):
         intervals = []
@@ -68,10 +64,12 @@ class Model:
 
         self.waiters = [Waiter(service_time)] * params['waiters']
         self.cookers = [Cooker(cooking_time)] * params['cookers']
-        self.work_time = mode['work_time']
+        # in seconds
+        self.work_time_from = mode['work_time']['from'] * 60 * 60
+        self.work_time_to = mode['work_time']['to'] * 60 * 60
         self.class_probability = mode['class_probability']
         self.eating_time = mode['eating_time']
         self.intervals = self.init_work_mode(mode)
         self.global_time = 0
         self.next_events = []
-        self.next_events.append(Event(0, self.next_request(self.intervals[0].interval)))
+        self.next_events.append(Event(0, Request(1)))
