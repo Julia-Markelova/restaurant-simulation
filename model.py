@@ -19,9 +19,7 @@ class RequestInterval:
 
 
 class Model:
-    """
-    Initializing restaurant's parameters
-    """
+
     def next_request(self):
         pass
 
@@ -33,6 +31,9 @@ class Model:
 
         return intervals
 
+    """
+        Initializing restaurant's parameters
+    """
     def __init__(self, data):
         params = json.load(data)
         cooking_time = params['cooking_time']
