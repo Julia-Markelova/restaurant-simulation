@@ -8,13 +8,14 @@ All time in system is in seconds (except user's input).
 
 import json
 from restaurant import *
-from generating import *
+from events import *
 
 
 class RequestInterval:
     """
     Calculating average intervals between requests according to current time in SECONDS
     """
+
     def __init__(self, total, item):
         self.fromInterval = item['from'] * 60 * 60
         self.toInterval = item['to'] * 60 * 60
@@ -28,8 +29,8 @@ class Model:
 
     def run(self):
         while self.global_time < self.work_time_to:
-            #   for event in self.next_events:
-            #      print(str(round(event.when / 3600)) + ":" + str(round(event.when / 60) % 60), event.what.__dict__)
+            # for event in self.next_events:
+            #  print(str(round(event.when / 3600)) + ":" + str(round(event.when / 60) % 60), event.what.__dict__)
 
             for event in filter(lambda e: e.when <= self.global_time, self.next_events):
                 event.handle(self)
@@ -41,6 +42,7 @@ class Model:
     """
     Calculate average interval between requests according to current time
     """
+
     def current_request_mean(self):
         current_interval = list(filter(
             lambda interval: interval.fromInterval <= self.global_time <= interval.toInterval,
@@ -51,6 +53,7 @@ class Model:
     """
     Add average intervals in a model
     """
+
     def init_work_mode(self, mode):
         intervals = []
 
@@ -65,23 +68,30 @@ class Model:
 
     def __init__(self, data):
         params = json.load(data)
-        cooking_time = params['cooking_time']
+        self.cooking_time = params['cooking_time']
         service_time = params['service_time']
         mode = params['restaurant_mode']
         self.tables = []
+        self.waiters = []
+        self.cookers = []
 
         for table_class in params['tables']:
-            self.tables.extend([Table(table_class['size'])] * table_class['count'])
+            for index in range(table_class['count']):
+                self.tables.append(Table(table_class['size']))
 
-        self.waiters = [Waiter(service_time)] * params['waiters']
-        self.cookers = [Cooker(cooking_time)] * params['cookers']
+        for index in range(params['waiters']):
+            self.waiters.append(Waiter(service_time * 60))
+
+        for index in range(params['cookers']):
+            self.cookers.append(Cooker(self.cooking_time * 60))
 
         self.work_time_from = mode['work_time']['from'] * 60 * 60  # in seconds
-        self.work_time_to = mode['work_time']['to'] * 60 * 60      # in seconds
+        self.work_time_to = mode['work_time']['to'] * 60 * 60  # in seconds
         self.class_probability = mode['class_probability']
         self.eating_time = mode['eating_time']
         self.intervals = self.init_work_mode(mode)
         self.global_time = self.work_time_from
         self.next_events = []
-        self.next_events.append(Event(self.global_time, Request(1)))
+        self.next_events.append(Event(self.global_time, RequestEvent(1)))
         self.count = 0
+        self.lost_counter = 0

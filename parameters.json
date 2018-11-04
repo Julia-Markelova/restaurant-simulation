@@ -2,11 +2,11 @@
   "tables": [
     {
       "size": 2,
-      "count": 5
+      "count": 100
     },
     {
       "size": 4,
-      "count": 2
+      "count": 100
     }
   ],
   "waiters": 10,
