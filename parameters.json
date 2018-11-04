@@ -1,0 +1,26 @@
+{
+  "tables": [
+    {
+      "size": 2,
+      "count": 5
+    },
+    {
+      "size": 4,
+      "count": 2
+    }
+  ],
+  "waiters": 10,
+  "cookers": 10,
+  "requests": {
+    "average_per_day": 300,
+    "class_probability": {
+      "1": 0.1,
+      "2": 0.5,
+      "3": 0.2,
+      "4": 0.3
+    }
+  },
+  "cooking_time": 20,
+  "service_time": 5,
+  "eating_time": 20
+}
