@@ -52,7 +52,7 @@ class WaiterEvent:
                     )
                 )
 
-            model.next_events.append(model.global_time + delay, WaiterFreeEvent(waiter))
+            model.next_events.append(Event(model.global_time + delay, WaiterFreeEvent(waiter)))
 
         else:
             pass
