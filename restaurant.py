@@ -13,7 +13,6 @@ class Waiter:
 
 class Cooker:
     def __init__(self, cooking_time):
-        self.size = size
         self.cooking_time = cooking_time
 
 
