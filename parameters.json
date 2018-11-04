@@ -11,8 +11,29 @@
   ],
   "waiters": 10,
   "cookers": 10,
-  "requests": {
+  "restaurant_mode": {
     "average_per_day": 300,
+    "work_time": {
+      "from": 10,
+      "to": 22
+    },
+    "attendance": [
+      {
+        "from": 10,
+        "to": 14,
+        "part": 0.2
+      },
+      {
+        "from": 14,
+        "to": 18,
+        "part": 0.3
+      },
+      {
+        "from": 18,
+        "to": 22,
+        "part": 0.5
+      }
+    ],
     "eating_time": 20,
     "class_probability": {
       "1": 0.1,
