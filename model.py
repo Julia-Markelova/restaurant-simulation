@@ -8,7 +8,7 @@ All time in system is in seconds (except user's input).
 
 import json
 from restaurant import *
-from events import *
+from events.request_event import *
 
 
 class RequestInterval:
@@ -72,7 +72,7 @@ class Model:
         self.global_time = self.restaurant.work_time_from
         self.intervals = self.init_work_mode(params['restaurant_mode'])
         self.class_probability = params['restaurant_mode']['class_probability']
-        self.next_events = [Event(self.global_time, RequestEvent(Request(1)))]
+        self.next_events = [event.Event(self.global_time, RequestEvent(Request(1)))]
 
         self.count = 0
         self.lost_counter = 0

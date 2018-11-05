@@ -1,3 +1,7 @@
+"""
+Module describes the main params of the restaurant.
+"""
+
 from states import State
 
 
@@ -6,7 +10,8 @@ class Restaurant:
         self.tables = []
         self.waiters = []
         self.cookers = []
-        self.dishes = []
+        self.ready_dishes = []
+        self.waiting_dishes = []
 
         for table_class in params['tables']:
             for index in range(table_class['count']):
@@ -39,6 +44,7 @@ class Waiter:
 class Cooker:
     def __init__(self, cooking_time):
         self.cooking_time = cooking_time
+        self.available = True
 
 
 class Request:
