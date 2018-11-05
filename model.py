@@ -2,7 +2,6 @@
 This module consists of the most important objects of the simulator.
 There are restaurant's initialization with custom parameters.
 Also average intervals between requests according to current time are calculated.
-According to the intervals and probability of count of people requests are generating.
 All time in system is in seconds (except user's input).
 """
 
@@ -12,11 +11,13 @@ from events.request_event import *
 
 
 class RequestInterval:
-    """
-    Calculating average intervals between requests according to current time in SECONDS
-    """
 
     def __init__(self, total, item):
+        """
+        Calculating average intervals between requests according to current time in SECONDS
+        :param total: how many people are coming every day (average meaning)
+        :param item: consists of time interval and a part of people which will come in this interval
+        """
         self.fromInterval = item['from'] * 60 * 60
         self.toInterval = item['to'] * 60 * 60
         self.interval = round(1 / (total * item['part'] / (self.toInterval - self.fromInterval)))
@@ -24,10 +25,14 @@ class RequestInterval:
 
 class Model:
     """
-    Generating of requests (people) and taking a sit
+    Generating of requests
     """
 
     def human_time(self):
+        """
+        Convert global time in the system to the human-readable time
+        :return: human-readable time as a string
+        """
         day = str(self.global_time // (3600 * 24) + 1)
         hours = str(self.global_time // 3600 % 24)
         minutes = str((self.global_time // 60) % 60)
@@ -42,6 +47,9 @@ class Model:
         return "Day " + day + " " + hours + ":" + minutes + ":" + seconds
 
     def run(self):
+        """
+        Executing events while they are in the system.
+        """
         while self.global_time < self.restaurant.work_time_to or self.next_events:
 
             for event in filter(lambda ev: ev.when <= self.global_time, self.next_events):
@@ -50,11 +58,11 @@ class Model:
 
             self.global_time += 1
 
-    """
-    Calculate average interval between requests according to current time
-    """
-
     def current_request_mean(self):
+        """
+        Calculate average interval between requests according to current time
+        :return: average interval in seconds
+        """
         current_interval = list(
             filter(
                 lambda interval: interval.fromInterval <= self.global_time <= interval.toInterval, self.intervals)
@@ -62,11 +70,12 @@ class Model:
 
         return current_interval.interval
 
-    """
-    Add average intervals in a model
-    """
-
     def init_work_mode(self, mode):
+        """
+        Add average intervals in a model
+        :param mode: restaurant params in json
+        :return: a list with average interval and its time
+        """
         intervals = []
 
         for item in mode['attendance']:
@@ -74,11 +83,11 @@ class Model:
 
         return intervals
 
-    """
-        Initializing restaurant's parameters
-    """
-
     def __init__(self, data):
+        """
+        Initializing restaurant's parameters
+        :param data: json file with params
+        """
         params = json.load(data)
         self.restaurant = Restaurant(params)
         self.global_time = self.restaurant.work_time_from

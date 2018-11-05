@@ -13,6 +13,14 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
 
 def waiter_service(waiter, model, request):
+    """
+    Change waiter's state to SERVICING, generate dishes for each human in request's size.
+    Call CookerCallEvent for each generated dish.
+    After that generate WaiterFreeEvent.
+    :param waiter: who will work
+    :param model: current state of model
+    :param request:
+    """
     waiter.state = WaiterState.SERVICING
     logging.info("%s: Waiter %d is started servicing request %d", model.human_time(), waiter.id, request.id)
     service_time = 0

@@ -1,6 +1,7 @@
 """
 There are request's events which will be done in the future at their time.
 Events are saved in a list with their starting time and a handle function.
+Requests are generated until last_entrance_time
 """
 
 from random import expovariate, choices
@@ -15,6 +16,12 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
 class EatingFinishEvent:
     def handle(self, model):
+        """
+        Delivered dishes decremented (ate).
+        If there are no dish we wait, we will call a waiter for a bill (now).
+        If there are no waiter we will wait while he comes.
+        :param model: current state of model
+        """
         self.request.dish_count -= 1
         self.request.state = RequestState.OK
         logging.info("%s: Request %d ate a dish %d. Remaining dishes: %d",
@@ -34,28 +41,32 @@ class EatingFinishEvent:
 
 
 class LeaveEvent:
-    """
-    If request is waiting more then N minutes, we will lost it
-    """
-
     def handle(self, model):
+        """
+        If request is waiting more then N minutes, we will lost it
+        When request is leaving, it makes its table free
+        :param model: current state of model
+        """
         if self.request.state == RequestState.WAITING_FOR_WAITER:
             self.request.table.available = True
             self.request.table.owner = None
             model.bad_leave_counter += 1
-            logging.info("%s: Request %d left because of too long waiting", model.human_time(), self.request.id)
+            logging.info("%s: Request %d left because of too long waiting",
+                         model.human_time(), self.request.id)
 
     def __init__(self, request):
         self.request = request
 
 
 class RequestEvent:
-    """
-    Generating new request (exponential with custom meaning).
-    Take a table and waiting for the waiter.
-    """
-
     def handle(self, model):
+        """
+        Generating new request (exponential with custom meaning) with N people.
+        Take a table and waiting for the waiter.
+        If there are no free table, request is going to leave.
+        Increment counter of visitors or lost.
+        :param model: current state of model
+        """
         model.all += 1
         # trying to seize table
         tables = list(filter(lambda t: t.size >= self.request.size and t.available, model.restaurant.tables))
@@ -79,7 +90,7 @@ class RequestEvent:
                                    list(model.class_probability.values()))[0])
 
         """
-        Generating next event in seconds according to current_mean.
+        Generating next event in seconds according to current_mean and until last_entrance_time.
         Increment counter of requests
         """
         if model.global_time < model.restaurant.last_entrance_time:
