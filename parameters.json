@@ -15,7 +15,8 @@
     "average_per_day": 300,
     "work_time": {
       "from": 10,
-      "to": 22
+      "to": 22,
+      "last_entrance_time": 21
     },
     "attendance": [
       {

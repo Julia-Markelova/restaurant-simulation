@@ -4,6 +4,7 @@ Cooker's logic is here.
 
 from random import expovariate
 from events import event, waiter_event as w
+from states import WaiterState
 import logging
 import sys
 
@@ -51,7 +52,7 @@ class CookerFreeEvent:
 
 class DishEvent:
     def handle(self, model):
-        waiters = list(filter(lambda wait: wait.available, model.restaurant.waiters))
+        waiters = list(filter(lambda wait: wait.state == WaiterState.FREE, model.restaurant.waiters))
         model.restaurant.ready_dishes.append(self.dish)
 
         if waiters:

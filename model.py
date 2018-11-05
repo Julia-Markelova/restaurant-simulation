@@ -41,7 +41,7 @@ class Model:
         return hours + ":" + minutes + ":" + seconds
 
     def run(self):
-        while self.global_time < self.restaurant.work_time_to:
+        while self.global_time < self.restaurant.work_time_to or self.next_events:
 
             for event in filter(lambda ev: ev.when <= self.global_time, self.next_events):
                 event.handle(self)
@@ -54,9 +54,10 @@ class Model:
     """
 
     def current_request_mean(self):
-        current_interval = list(filter(
-            lambda interval: interval.fromInterval <= self.global_time <= interval.toInterval,
-            self.intervals))[0]
+        current_interval = list(
+            filter(
+                lambda interval: interval.fromInterval <= self.global_time <= interval.toInterval, self.intervals)
+        )[0]
 
         return current_interval.interval
 
@@ -86,6 +87,6 @@ class Model:
 
         self.bad_leave_counter = 0
         self.serviced = 0
-        self.count = 0
+        self.seated_count = 0
         self.lost_counter = 0
         self.all = 0

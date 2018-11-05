@@ -6,7 +6,7 @@ Events are saved in a list with their starting time and a handle function.
 from random import expovariate, choices
 from events import waiter_event as w, event as e
 from restaurant import Request
-from states import State
+from states import RequestState, WaiterState
 import logging
 import sys
 
@@ -15,15 +15,22 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
 class EatingFinishEvent:
     def handle(self, model):
-        waiters = list(filter(lambda wait: wait.available, model.restaurant.waiters))
-        self.request.status = State.WAITING_FOR_BILL
+        self.request.dish_count -= 1
+        self.request.state = RequestState.OK
+        logging.info("%s: Request %d ate a dish %d. Remaining dishes: %d",
+                     model.human_time(), self.request.id, self.dish.id, self.request.dish_count)
 
-        if waiters:
-            waiter = waiters[0]
-            w.bill_service(model, waiter)
+        if self.request.dish_count == 0:
+            waiters = list(filter(lambda wait: wait.state == WaiterState.FREE, model.restaurant.waiters))
+            self.request.state = RequestState.WAITING_FOR_BILL
 
-    def __init__(self, request):
-        self.request = request
+            if waiters:
+                waiter = waiters[0]
+                w.bill_service(model, waiter)
+
+    def __init__(self, dish):
+        self.request = dish.request
+        self.dish = dish
 
 
 class LeaveEvent:
@@ -32,7 +39,7 @@ class LeaveEvent:
     """
 
     def handle(self, model):
-        if self.request.status == State.WAITING_FOR_WAITER:
+        if self.request.state == RequestState.WAITING_FOR_WAITER:
             self.request.table.available = True
             self.request.table.owner = None
             model.bad_leave_counter += 1
@@ -49,6 +56,7 @@ class RequestEvent:
     """
 
     def handle(self, model):
+        model.all += 1
         # trying to seize table
         tables = list(filter(lambda t: t.size >= self.request.size and t.available, model.restaurant.tables))
         logging.info("%s: Income request %d", model.human_time(), self.request.id)
@@ -57,7 +65,7 @@ class RequestEvent:
             self.request.table = tables[0]
             self.request.table.available = False
             self.request.table.owner = self.request
-            model.count += 1
+            model.seated_count += 1
             logging.info("%s: Request %d took a table %d ",
                          model.human_time(), self.request.id, self.request.table.id)
             # here we have some time to read a menu before calling a waiter
@@ -74,10 +82,10 @@ class RequestEvent:
         Generating next event in seconds according to current_mean.
         Increment counter of requests
         """
-        next_request_time = round(expovariate(1 / model.current_request_mean()))
-        model.next_events.append(e.Event(model.global_time + next_request_time,
-                                         RequestEvent(Request(people_count))))
-        model.all += 1
+        if model.global_time < model.restaurant.last_entrance_time:
+            next_request_time = round(expovariate(1 / model.current_request_mean()))
+            model.next_events.append(e.Event(model.global_time + next_request_time,
+                                             RequestEvent(Request(people_count))))
 
     def __init__(self, request):
         self.request = request

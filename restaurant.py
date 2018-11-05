@@ -2,7 +2,7 @@
 Module describes the main params of the restaurant.
 """
 
-from states import State
+from states import RequestState, WaiterState
 from itertools import count
 
 
@@ -30,6 +30,7 @@ class Restaurant:
         self.thinking_time = params['thinking_time'] * 60
         self.work_time_from = params['restaurant_mode']['work_time']['from'] * 60 * 60  # in seconds
         self.work_time_to = params['restaurant_mode']['work_time']['to'] * 60 * 60  # in seconds
+        self.last_entrance_time = params['restaurant_mode']['work_time']['last_entrance_time'] * 60 * 60
 
 
 class Table:
@@ -47,8 +48,8 @@ class Waiter:
 
     def __init__(self, service_time):
         self.service_time = service_time
-        self.available = True
         self.id = next(self._ids)
+        self.state = WaiterState.FREE
 
 
 class Cooker:
@@ -67,7 +68,7 @@ class Request:
         self.id = next(self._ids)
         self.size = size
         self.table = None
-        self.status = State.OK
+        self.state = RequestState.OK
         self.dish_count = 0
 
 
