@@ -16,14 +16,14 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 class EatingFinishEvent:
     def handle(self, model):
         waiters = list(filter(lambda wait: wait.available, model.restaurant.waiters))
-        model.restaurant.bill.append(self.req)
+        self.request.status = State.WAITING_FOR_BILL
 
         if waiters:
             waiter = waiters[0]
             w.bill_service(model, waiter)
 
-    def __init__(self, req):
-        self.req = req
+    def __init__(self, request):
+        self.request = request
 
 
 class LeaveEvent:
@@ -32,11 +32,11 @@ class LeaveEvent:
     """
 
     def handle(self, model):
-        if self.request.status == State.WAITING:
+        if self.request.status == State.WAITING_FOR_WAITER:
             self.request.table.available = True
             self.request.table.owner = None
-            model.lost_counter += 1
-            print("bad leave:", self.request.req_id)
+            model.bad_leave_counter += 1
+            logging.info("%s: Request %d left because of too long waiting", model.human_time(), self.request.id)
 
     def __init__(self, request):
         self.request = request
@@ -51,16 +51,17 @@ class RequestEvent:
     def handle(self, model):
         # trying to seize table
         tables = list(filter(lambda t: t.size >= self.request.size and t.available, model.restaurant.tables))
-        logging.info("%s: Income request number %d", model.human_time(), self.request.req_id)
+        logging.info("%s: Income request %d", model.human_time(), self.request.id)
 
         if tables:
             self.request.table = tables[0]
             self.request.table.available = False
             self.request.table.owner = self.request
             model.count += 1
-            logging.info("%s: Take a table request number: %d", model.human_time(), self.request.req_id)
+            logging.info("%s: Take a table %d request %d",
+                         model.human_time(), self.request.table.id, self.request.id)
             # here we have some time to read a menu before calling a waiter
-            model.next_events.append(e.Event(model.global_time + expovariate(1 / 300),
+            model.next_events.append(e.Event(model.global_time + round(expovariate(1 / 300)),
                                              w.WaiterEvent(self.request)))
         else:
             model.lost_counter += 1
@@ -74,7 +75,7 @@ class RequestEvent:
         """
         next_request_time = round(expovariate(1 / model.current_request_mean()))
         model.next_events.append(e.Event(model.global_time + next_request_time,
-                                         RequestEvent(Request(people_count, self.request.req_id + 1))))
+                                         RequestEvent(Request(people_count))))
         model.all += 1
 
     def __init__(self, request):

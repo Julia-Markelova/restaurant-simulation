@@ -3,6 +3,7 @@ Module describes the main params of the restaurant.
 """
 
 from states import State
+from itertools import count
 
 
 class Restaurant:
@@ -12,7 +13,6 @@ class Restaurant:
         self.cookers = []
         self.ready_dishes = []
         self.waiting_dishes = []
-        self.bill = []
 
         for table_class in params['tables']:
             for index in range(table_class['count']):
@@ -30,27 +30,38 @@ class Restaurant:
 
 
 class Table:
+    _ids = count(0)
+
     def __init__(self, size):
         self.size = size
         self.available = True
         self.owner = None
+        self.id = next(self._ids)
 
 
 class Waiter:
+    _ids = count(0)
+
     def __init__(self, service_time):
         self.service_time = service_time
         self.available = True
+        self.id = next(self._ids)
 
 
 class Cooker:
+    _ids = count(0)
+
     def __init__(self, cooking_time):
         self.cooking_time = cooking_time
         self.available = True
+        self.id = next(self._ids)
 
 
 class Request:
-    def __init__(self, size, req_id):
-        self.req_id = req_id
+    _ids = count(0)
+
+    def __init__(self, size):
+        self.id = next(self._ids)
         self.size = size
         self.table = None
         self.status = State.OK
@@ -58,6 +69,9 @@ class Request:
 
 
 class Dish:
+    _ids = count(0)
+
     def __init__(self, request):
         self.is_ready = False
         self.request = request
+        self.id = next(self._ids)

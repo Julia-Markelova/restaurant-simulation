@@ -6,10 +6,10 @@
     },
     {
       "size": 4,
-      "count": 10
+      "count": 100
     }
   ],
-  "waiters": 10,
+  "waiters": 100,
   "cookers": 10,
   "restaurant_mode": {
     "average_per_day": 300,

@@ -2,6 +2,6 @@ from enum import Enum, auto
 
 
 class State(Enum):
-    WAITING = auto()
+    WAITING_FOR_WAITER = auto()
     OK = auto()
-    EATING = auto()
+    WAITING_FOR_BILL = auto()
