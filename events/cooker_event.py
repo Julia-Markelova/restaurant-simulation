@@ -23,9 +23,9 @@ class CookerCallEvent:
 
 def cooker_service(cooker, model, dish):
     cooker.available = False
-    delay = expovariate(1 / cooker.cooking_time)
+    cooking_time = expovariate(1 / cooker.cooking_time)
     model.restaurant.waiting_dishes.remove(dish)
-    model.next_events.append(event.Event(model.global_time + delay, DishEvent(dish, cooker)))
+    model.next_events.append(event.Event(model.global_time + cooking_time, DishEvent(dish, cooker)))
 
 
 class CookerFreeEvent:

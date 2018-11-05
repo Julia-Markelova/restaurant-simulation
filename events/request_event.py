@@ -11,8 +11,7 @@ from states import State
 
 class EatingFinishEvent:
     def handle(self, model):
-        # TODO: asking for a bill or for extra dish
-        self.req.table.available = True
+        model.restaurant.bill.append(self.req)
 
     def __init__(self, req):
         self.req = req

@@ -12,6 +12,7 @@ class Restaurant:
         self.cookers = []
         self.ready_dishes = []
         self.waiting_dishes = []
+        self.bill = []
 
         for table_class in params['tables']:
             for index in range(table_class['count']):
