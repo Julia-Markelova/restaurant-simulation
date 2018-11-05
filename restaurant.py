@@ -1,3 +1,28 @@
+from states import State
+
+
+class Restaurant:
+    def __init__(self, params):
+        self.tables = []
+        self.waiters = []
+        self.cookers = []
+        self.dishes = []
+
+        for table_class in params['tables']:
+            for index in range(table_class['count']):
+                self.tables.append(Table(table_class['size']))
+
+        for index in range(params['waiters']):
+            self.waiters.append(Waiter(params['service_time'] * 60))
+
+        for index in range(params['cookers']):
+            self.cookers.append(Cooker(params['cooking_time'] * 60))
+
+        self.eating_time = params['restaurant_mode']['eating_time']
+        self.work_time_from = params['restaurant_mode']['work_time']['from'] * 60 * 60  # in seconds
+        self.work_time_to = params['restaurant_mode']['work_time']['to'] * 60 * 60  # in seconds
+
+
 class Table:
     def __init__(self, size):
         self.size = size
@@ -14,6 +39,13 @@ class Waiter:
 class Cooker:
     def __init__(self, cooking_time):
         self.cooking_time = cooking_time
+
+
+class Request:
+    def __init__(self, size):
+        self.size = size
+        self.table = None
+        self.status = State.OK
 
 
 class Dish:

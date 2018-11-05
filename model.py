@@ -28,7 +28,7 @@ class Model:
     """
 
     def run(self):
-        while self.global_time < self.work_time_to:
+        while self.global_time < self.restaurant.work_time_to:
             # for event in self.next_events:
             #  print(str(round(event.when / 3600)) + ":" + str(round(event.when / 60) % 60), event.what.__dict__)
 
@@ -68,30 +68,11 @@ class Model:
 
     def __init__(self, data):
         params = json.load(data)
-        self.cooking_time = params['cooking_time']
-        service_time = params['service_time']
-        mode = params['restaurant_mode']
-        self.tables = []
-        self.waiters = []
-        self.cookers = []
-        self.dishes = []
+        self.restaurant = Restaurant(params)
+        self.global_time = self.restaurant.work_time_from
+        self.intervals = self.init_work_mode(params['restaurant_mode'])
+        self.class_probability = params['restaurant_mode']['class_probability']
+        self.next_events = [Event(self.global_time, RequestEvent(Request(1)))]
 
-        for table_class in params['tables']:
-            for index in range(table_class['count']):
-                self.tables.append(Table(table_class['size']))
-
-        for index in range(params['waiters']):
-            self.waiters.append(Waiter(service_time * 60))
-
-        for index in range(params['cookers']):
-            self.cookers.append(Cooker(self.cooking_time * 60))
-
-        self.work_time_from = mode['work_time']['from'] * 60 * 60  # in seconds
-        self.work_time_to = mode['work_time']['to'] * 60 * 60  # in seconds
-        self.class_probability = mode['class_probability']
-        self.eating_time = mode['eating_time']
-        self.intervals = self.init_work_mode(mode)
-        self.global_time = self.work_time_from
-        self.next_events = [Event(self.global_time, RequestEvent(1))]
         self.count = 0
         self.lost_counter = 0

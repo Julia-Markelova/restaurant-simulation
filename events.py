@@ -5,6 +5,7 @@ Events are saved in a list with their starting time and a handle function.
 
 from random import expovariate, choices, randrange
 
+from restaurant import Request
 from states import State
 
 
@@ -20,12 +21,12 @@ def waiter_service(waiter, model, request):
     for dish in range(dish_count):
         pass
     # TODO: implement CookerCallEvent
-#        model.next_events.append(
-#            Event(
-#                model.global_time + delay + expovariate(1 / model.cooking_time),
-#                DishEvent(request)
-#            )
-#        )
+    #        model.next_events.append(
+    #            Event(
+    #                model.global_time + delay + expovariate(1 / model.cooking_time),
+    #                DishEvent(request)
+    #            )
+    #        )
 
     model.next_events.append(Event(model.global_time + delay, WaiterFreeEvent(waiter)))
 
@@ -57,7 +58,7 @@ class WaiterEvent:
     """
 
     def handle(self, model):
-        waiters = list(filter(lambda w: w.available, model.waiters))
+        waiters = list(filter(lambda w: w.available, model.restaurant.waiters))
 
         if waiters:
             waiter = waiters[0]
@@ -85,19 +86,24 @@ class WaiterFreeEvent:
 
     def handle(self, model):
         self.waiter.available = True
-        dishes = list(filter(lambda d: d.is_ready, model.dishes))
+        dishes = list(filter(lambda d: d.is_ready, model.restaurant.dishes))
 
         if dishes:
             self.waiter.available = False
             dish = dishes[0]
             delay = expovariate(1 / 300)
-            model.dishes.remove(dish)
+            model.restaurant.dishes.remove(dish)
             model.next_events.append(Event(model.global_time + delay, WaiterFreeEvent(self.waiter)))
-            model.next_events.append(Event(model.global_time + delay + expovariate(1 / model.eating_time),
-                                           EatingFinishEvent(dish.request)))
+            model.next_events.append(
+                Event(
+                    model.global_time + delay + expovariate(1 / model.restaurant.eating_time),
+                    EatingFinishEvent(dish.request)
+                )
+            )
 
         else:
-            tables = list(filter(lambda t: not t.available and t.owner.status == State.WAITING, model.tables))
+            tables = list(filter(lambda t: not t.available and t.owner.status == State.WAITING,
+                                 model.restaurant.tables))
 
             if tables:
                 request = tables[0].owner
@@ -129,16 +135,16 @@ class RequestEvent:
 
     def handle(self, model):
         # trying to seize table
-        tables = list(filter(lambda t: t.size >= self.size and t.available, model.tables))
+        tables = list(filter(lambda t: t.size >= self.request.size and t.available, model.restaurant.tables))
 
         if tables:
-            self.table = tables[0]
-            self.table.available = False
-            self.table.owner = self
+            self.request.table = tables[0]
+            self.request.table.available = False
+            self.request.table.owner = self.request
             model.count += 1
             # here we have some time to read a menu before calling a waiter
             model.next_events.append(Event(model.global_time + expovariate(1 / 300),
-                                           WaiterEvent(self)))
+                                           WaiterEvent(self.request)))
         else:
             model.lost_counter += 1
 
@@ -150,10 +156,9 @@ class RequestEvent:
         Increment counter of requests
         """
         next_request_time = round(expovariate(1 / model.current_request_mean()))
-        model.next_events.append(Event(model.global_time + next_request_time, RequestEvent(people_count)))
+        model.next_events.append(Event(model.global_time + next_request_time,
+                                       RequestEvent(Request(people_count))))
 
-    def __init__(self, size):
-        self.size = size
-        self.table = None
-        self.status = State.OK
+    def __init__(self, request):
+        self.request = request
         # eating_time?
