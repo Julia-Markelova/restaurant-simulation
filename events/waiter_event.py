@@ -6,50 +6,62 @@ from events import cooker_event, event, request_event as r
 from random import expovariate, randrange
 from states import State
 from restaurant import Dish
+import logging
+import sys
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
 
 def waiter_service(waiter, model, request):
     waiter.available = False
+    logging.info("%s: Water started service request number %d", model.human_time(), request.req_id)
     service_time = 0
     dish_count = 0
 
     for human in range(request.size):
         service_time += expovariate(1 / waiter.service_time)
-        dish_count += 1     #randrange(0, 3, 1)
+        dish_count += randrange(0, 3, 1)
+
+    request.dish_count = dish_count
 
     for dish in range(dish_count):
         model.next_events.append(
             event.Event(model.global_time + service_time, cooker_event.CookerCallEvent(Dish(request)))
         )
 
-    model.next_events.append(event.Event(model.global_time + service_time, WaiterFreeEvent(waiter)))
+    model.next_events.append(event.Event(model.global_time + service_time, WaiterFreeEvent(waiter, request)))
 
 
 def delivery_service(waiter, model, dish):
     delivery_time = expovariate(1 / 300)  # time to deliver food
     model.restaurant.ready_dishes.remove(dish)
-    model.next_events.append(event.Event(model.global_time + delivery_time, WaiterFreeEvent(waiter)))
-    model.next_events.append(
-        event.Event(
-            model.global_time + delivery_time + expovariate(1 / model.restaurant.eating_time),
-            r.EatingFinishEvent(dish.request)
+    model.next_events.append(event.Event(model.global_time + delivery_time,
+                                         WaiterFreeEvent(waiter, dish.request)))
+    dish.request.dish_count -= 1
+    logging.info("%s: Dish is delivered to request number %d, remain dishes: %d",
+                 model.human_time(), dish.request.req_id, dish.request.dish_count)
+    if dish.request.dish_count == 0:
+        model.next_events.append(
+            event.Event(
+                model.global_time + delivery_time + expovariate(1 / model.restaurant.eating_time),
+                r.EatingFinishEvent(dish.request)
+            )
         )
-    )
 
 
 def bill_service(model, waiter):
     bills = model.restaurant.bill
 
     if bills:
+        waiter.available = False
         request = bills[0]
+        logging.info("%s: Waiter started billed request number %d", model.human_time(), request.req_id)
         bills.remove(request)
         service_time = expovariate(1 / waiter.service_time)
         model.next_events.append(event.Event(model.global_time + service_time,
                                              TableFreeEvent(request.table)))
         model.next_events.append(event.Event(model.global_time + service_time,
-                                             WaiterFreeEvent(waiter)))
-    else:
-        print("no bill")
+                                             WaiterFreeEvent(waiter, request)))
 
 
 class WaiterEvent:
@@ -81,6 +93,7 @@ class WaiterFreeEvent:
 
     def handle(self, model):
         self.waiter.available = True
+        logging.info("%s: Waiter finished service request number %d", model.human_time(), self.req.req_id)
         dishes = list(filter(lambda d: d.is_ready, model.restaurant.ready_dishes))
 
         if dishes:
@@ -99,8 +112,9 @@ class WaiterFreeEvent:
             else:
                 bill_service(model, self.waiter)
 
-    def __init__(self, waiter):
+    def __init__(self, waiter, req):
         self.waiter = waiter
+        self.req = req
 
 
 class TableFreeEvent:
@@ -108,7 +122,7 @@ class TableFreeEvent:
         self.table = table
 
     def handle(self, model):
-        print("ok leave:", self.table.owner.c)
+        logging.info("%s: Leave request number %d", model.human_time(), self.table.owner.req_id)
         model.serviced += 1
         self.table.available = True
         self.table.owner = None

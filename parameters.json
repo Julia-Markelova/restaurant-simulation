@@ -2,11 +2,11 @@
   "tables": [
     {
       "size": 2,
-      "count": 3
+      "count": 10
     },
     {
       "size": 4,
-      "count": 1
+      "count": 10
     }
   ],
   "waiters": 10,
@@ -36,7 +36,10 @@
     ],
     "eating_time": 20,
     "class_probability": {
-      "1": 1
+      "1": 0.1,
+      "2": 0.4,
+      "3": 0.25,
+      "4": 0.25
     }
   },
   "cooking_time": 20,

@@ -49,11 +49,12 @@ class Cooker:
 
 
 class Request:
-    def __init__(self, size, c):
-        self.c = c
+    def __init__(self, size, req_id):
+        self.req_id = req_id
         self.size = size
         self.table = None
         self.status = State.OK
+        self.dish_count = 0
 
 
 class Dish:

@@ -7,6 +7,10 @@ from random import expovariate, choices
 from events import waiter_event as w, event as e
 from restaurant import Request
 from states import State
+import logging
+import sys
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
 
 class EatingFinishEvent:
@@ -32,7 +36,7 @@ class LeaveEvent:
             self.request.table.available = True
             self.request.table.owner = None
             model.lost_counter += 1
-            print("bad leave:", self.request.c)
+            print("bad leave:", self.request.req_id)
 
     def __init__(self, request):
         self.request = request
@@ -47,14 +51,14 @@ class RequestEvent:
     def handle(self, model):
         # trying to seize table
         tables = list(filter(lambda t: t.size >= self.request.size and t.available, model.restaurant.tables))
-        print("income:", self.request.c)
+        logging.info("%s: Income request number %d", model.human_time(), self.request.req_id)
 
         if tables:
             self.request.table = tables[0]
             self.request.table.available = False
             self.request.table.owner = self.request
             model.count += 1
-            print("Cel za stol: ", self.request.c)
+            logging.info("%s: Take a table request number: %d", model.human_time(), self.request.req_id)
             # here we have some time to read a menu before calling a waiter
             model.next_events.append(e.Event(model.global_time + expovariate(1 / 300),
                                              w.WaiterEvent(self.request)))
@@ -70,9 +74,8 @@ class RequestEvent:
         """
         next_request_time = round(expovariate(1 / model.current_request_mean()))
         model.next_events.append(e.Event(model.global_time + next_request_time,
-                                         RequestEvent(Request(people_count, self.request.c + 1))))
+                                         RequestEvent(Request(people_count, self.request.req_id + 1))))
         model.all += 1
-
 
     def __init__(self, request):
         self.request = request

@@ -27,6 +27,21 @@ class Model:
     Generating of requests (people) and taking a sit
     """
 
+    def human_time(self):
+        human_time = str(round(self.global_time / 3600)) + ":"
+
+        if len(str(round(self.global_time / 60) % 60)) == 2:
+            human_time += str(round(self.global_time / 60) % 60) + ":"
+        else:
+            human_time += "0" + str(round(self.global_time / 60) % 60) + ":"
+
+        if len(str(round(self.global_time) % 60)) == 2:
+            human_time += str(round(self.global_time) % 60)
+        else:
+            human_time += "0" + str(round(self.global_time) % 60)
+
+        return human_time
+
     def run(self):
         while self.global_time < self.restaurant.work_time_to:
 
@@ -34,8 +49,6 @@ class Model:
                 event.handle(self)
                 self.next_events.remove(event)
 
-            if self.global_time % 60 == 0:
-                print(str(round(self.global_time / 3600)) + ":" + str(round(self.global_time / 60) % 60))
             self.global_time += 1
 
     """

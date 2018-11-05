@@ -5,6 +5,10 @@ Cooker's logic is here.
 
 from random import expovariate
 from events import event, waiter_event as w
+import logging
+import sys
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
 
 class CookerCallEvent:
@@ -24,18 +28,21 @@ class CookerCallEvent:
 
 def cooker_service(cooker, model, dish):
     cooker.available = False
+    logging.info("%s: Cooker started request number %d", model.human_time(), dish.request.req_id)
     cooking_time = expovariate(1 / cooker.cooking_time)
     model.restaurant.waiting_dishes.remove(dish)
     model.next_events.append(event.Event(model.global_time + cooking_time, DishEvent(dish, cooker)))
 
 
 class CookerFreeEvent:
-    def __init__(self, cooker):
+    def __init__(self, cooker, dish):
         self.cooker = cooker
+        self.dish = dish
 
     def handle(self, model):
         waiting_dishes = model.restaurant.waiting_dishes
         self.cooker.available = True
+        logging.info("%s: Cooker finished request number %d", model.human_time(), self.dish.request.req_id)
 
         if waiting_dishes:
             cooker_service(self.cooker, model, waiting_dishes[0])
@@ -50,7 +57,7 @@ class DishEvent:
             waiter = waiters[0]
             w.delivery_service(waiter, model, self.dish)
 
-        model.next_events.append(event.Event(model.global_time, CookerFreeEvent(self.cooker)))
+        model.next_events.append(event.Event(model.global_time, CookerFreeEvent(self.cooker, self.dish)))
 
     def __init__(self, dish, cooker):
         self.dish = dish
