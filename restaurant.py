@@ -49,7 +49,8 @@ class Cooker:
 
 
 class Request:
-    def __init__(self, size):
+    def __init__(self, size, c):
+        self.c = c
         self.size = size
         self.table = None
         self.status = State.OK

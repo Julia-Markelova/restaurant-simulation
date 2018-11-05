@@ -4,12 +4,10 @@ Cooker's logic is here.
 
 
 from random import expovariate
-from events import event
+from events import event, waiter_event as w
 
 
 class CookerCallEvent:
-    def __init__(self, dish):
-        self.dish = dish
 
     def handle(self, model):
         model.restaurant.waiting_dishes.append(self.dish)
@@ -19,6 +17,9 @@ class CookerCallEvent:
         if cookers:
             cooker = cookers[0]
             cooker_service(cooker, model, dish)
+
+    def __init__(self, dish):
+        self.dish = dish
 
 
 def cooker_service(cooker, model, dish):
@@ -42,7 +43,13 @@ class CookerFreeEvent:
 
 class DishEvent:
     def handle(self, model):
+        waiters = list(filter(lambda wait: wait.available, model.restaurant.waiters))
         model.restaurant.ready_dishes.append(self.dish)
+
+        if waiters:
+            waiter = waiters[0]
+            w.delivery_service(waiter, model, self.dish)
+
         model.next_events.append(event.Event(model.global_time, CookerFreeEvent(self.cooker)))
 
     def __init__(self, dish, cooker):

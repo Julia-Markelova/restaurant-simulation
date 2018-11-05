@@ -1,9 +1,10 @@
 from model import Model
 
 restaurant_model = Model(open('parameters.json'))
-for interval in restaurant_model.intervals:
-    print(interval.__dict__)
 restaurant_model.run()
-print(restaurant_model.count, restaurant_model.lost_counter)
+print("Сели за стол:", restaurant_model.count,
+      "Не хватило стола:", restaurant_model.lost_counter,
+      "Обслужены:", restaurant_model.serviced,
+      "Всего сгенерировано:", restaurant_model.all)
 
 # for event in restaurant_model.next_events:

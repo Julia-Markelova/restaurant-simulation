@@ -15,7 +15,7 @@ def waiter_service(waiter, model, request):
 
     for human in range(request.size):
         service_time += expovariate(1 / waiter.service_time)
-        dish_count += randrange(0, 3, 1)
+        dish_count += 1     #randrange(0, 3, 1)
 
     for dish in range(dish_count):
         model.next_events.append(
@@ -23,6 +23,33 @@ def waiter_service(waiter, model, request):
         )
 
     model.next_events.append(event.Event(model.global_time + service_time, WaiterFreeEvent(waiter)))
+
+
+def delivery_service(waiter, model, dish):
+    delivery_time = expovariate(1 / 300)  # time to deliver food
+    model.restaurant.ready_dishes.remove(dish)
+    model.next_events.append(event.Event(model.global_time + delivery_time, WaiterFreeEvent(waiter)))
+    model.next_events.append(
+        event.Event(
+            model.global_time + delivery_time + expovariate(1 / model.restaurant.eating_time),
+            r.EatingFinishEvent(dish.request)
+        )
+    )
+
+
+def bill_service(model, waiter):
+    bills = model.restaurant.bill
+
+    if bills:
+        request = bills[0]
+        bills.remove(request)
+        service_time = expovariate(1 / waiter.service_time)
+        model.next_events.append(event.Event(model.global_time + service_time,
+                                             TableFreeEvent(request.table)))
+        model.next_events.append(event.Event(model.global_time + service_time,
+                                             WaiterFreeEvent(waiter)))
+    else:
+        print("no bill")
 
 
 class WaiterEvent:
@@ -42,7 +69,7 @@ class WaiterEvent:
 
         else:
             self.request.state = State.WAITING
-            waiting_time = 600
+            waiting_time = 600  # wait 600s before leave the restaurant
             model.next_events.append(event.Event(model.global_time + expovariate(1 / waiting_time),
                                                  r.LeaveEvent(self.request)))
 
@@ -59,15 +86,7 @@ class WaiterFreeEvent:
         if dishes:
             self.waiter.available = False
             dish = dishes[0]
-            delivery_time = expovariate(1 / 300)  # time to deliver food
-            model.restaurant.ready_dishes.remove(dish)
-            model.next_events.append(event.Event(model.global_time + delivery_time, WaiterFreeEvent(self.waiter)))
-            model.next_events.append(
-                event.Event(
-                    model.global_time + delivery_time + expovariate(1 / model.restaurant.eating_time),
-                    r.EatingFinishEvent(dish.request)
-                )
-            )
+            delivery_service(self.waiter, model, dish)
 
         else:
             tables = list(filter(lambda t: not t.available and t.owner.status == State.WAITING,
@@ -78,16 +97,7 @@ class WaiterFreeEvent:
                 waiter_service(self.waiter, model, request)
 
             else:
-                bills = model.restaurant.bill
-
-                if bills:
-                    request = bills[0]
-                    model.restaurant.bill.remove(request)
-                    service_time = expovariate(1 / self.waiter.service_time)
-                    model.next_events.append(event.Event(model.global_time + service_time,
-                                                         TableFreeEvent(request.table)))
-                    model.next_events.append(event.Event(model.global_time + service_time,
-                                                         WaiterFreeEvent(self.waiter)))
+                bill_service(model, self.waiter)
 
     def __init__(self, waiter):
         self.waiter = waiter
@@ -98,4 +108,7 @@ class TableFreeEvent:
         self.table = table
 
     def handle(self, model):
+        print("ok leave:", self.table.owner.c)
+        model.serviced += 1
         self.table.available = True
+        self.table.owner = None
