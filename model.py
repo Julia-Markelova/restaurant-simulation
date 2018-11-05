@@ -28,7 +28,8 @@ class Model:
     """
 
     def human_time(self):
-        hours = str(self.global_time // 3600)
+        day = str(self.global_time // (3600 * 24) + 1)
+        hours = str(self.global_time // 3600 % 24)
         minutes = str((self.global_time // 60) % 60)
         seconds = str(self.global_time % 60)
 
@@ -38,7 +39,7 @@ class Model:
         if len(seconds) != 2:
             seconds = "0" + seconds
 
-        return hours + ":" + minutes + ":" + seconds
+        return "Day " + day + " " + hours + ":" + minutes + ":" + seconds
 
     def run(self):
         while self.global_time < self.restaurant.work_time_to or self.next_events:

@@ -110,7 +110,7 @@ class WaiterFreeEvent:
                          self.waiter.id, self.request.id)
 
         self.waiter.state = WaiterState.FREE
-        dishes = list(filter(lambda d: d.is_ready, model.restaurant.ready_dishes))
+        dishes = model.restaurant.ready_dishes
 
         if dishes:
             self.waiter.state = WaiterState.DELIVERING_DISH
