@@ -1,3 +1,7 @@
+"""
+Basic states for Request and Waiter
+"""
+
 from enum import Enum, auto
 
 
