@@ -26,6 +26,7 @@ class CookerCallEvent:
         self.dish = dish
 
 
+# TODO: move to cooker class
 def cooker_service(cooker, model, dish):
     cooker.available = False
     logging.info("%s: Cooker %d started cooking dish %d for request %d", model.human_time(),

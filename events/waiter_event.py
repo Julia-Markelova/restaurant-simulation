@@ -12,6 +12,7 @@ import sys
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
 
+# TODO: move to waiter class
 def waiter_service(waiter, model, request):
     waiter.state = WaiterState.SERVICING
     logging.info("%s: Waiter %d is started servicing request %d", model.human_time(), waiter.id, request.id)
@@ -33,6 +34,7 @@ def waiter_service(waiter, model, request):
         event.Event(model.global_time + round(service_time), WaiterFreeEvent(waiter, request)))
 
 
+# TODO: move to waiter class
 def delivery_service(waiter, model, dish):
     waiter.state = WaiterState.DELIVERING_DISH
     model.restaurant.ready_dishes.remove(dish)
@@ -47,6 +49,7 @@ def delivery_service(waiter, model, dish):
     )
 
 
+# TODO: move to waiter
 def bill_service(model, waiter):
     waiting_for_bill = list(
         map(lambda t: t.owner,

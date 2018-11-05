@@ -86,6 +86,7 @@ class Model:
         self.class_probability = params['restaurant_mode']['class_probability']
         self.next_events = [e.Event(self.global_time, RequestEvent(Request(1)))]
 
+        # TODO: move this to stats class
         self.bad_leave_counter = 0
         self.serviced = 0
         self.seated_count = 0
