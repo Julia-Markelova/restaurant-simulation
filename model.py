@@ -28,24 +28,22 @@ class Model:
     """
 
     def human_time(self):
-        human_time = str(round(self.global_time / 3600)) + ":"
+        hours = str(self.global_time // 3600)
+        minutes = str((self.global_time // 60) % 60)
+        seconds = str(self.global_time % 60)
 
-        if len(str(round(self.global_time / 60) % 60)) == 2:
-            human_time += str(round(self.global_time / 60) % 60) + ":"
-        else:
-            human_time += "0" + str(round(self.global_time / 60) % 60) + ":"
+        if len(minutes) != 2:
+            minutes = "0" + minutes
 
-        if len(str(round(self.global_time) % 60)) == 2:
-            human_time += str(round(self.global_time) % 60)
-        else:
-            human_time += "0" + str(round(self.global_time) % 60)
+        if len(seconds) != 2:
+            seconds = "0" + seconds
 
-        return human_time
+        return hours + ":" + minutes + ":" + seconds
 
     def run(self):
         while self.global_time < self.restaurant.work_time_to:
 
-            for event in filter(lambda e: e.when <= self.global_time, self.next_events):
+            for event in filter(lambda ev: ev.when <= self.global_time, self.next_events):
                 event.handle(self)
                 self.next_events.remove(event)
 

@@ -58,8 +58,8 @@ class RequestEvent:
             self.request.table.available = False
             self.request.table.owner = self.request
             model.count += 1
-            logging.info("%s: Take a table %d request %d",
-                         model.human_time(), self.request.table.id, self.request.id)
+            logging.info("%s: Request %d took a table %d ",
+                         model.human_time(), self.request.id, self.request.table.id)
             # here we have some time to read a menu before calling a waiter
             model.next_events.append(e.Event(model.global_time + round(expovariate(1 / 300)),
                                              w.WaiterEvent(self.request)))
