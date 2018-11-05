@@ -24,7 +24,10 @@ class Restaurant:
         for index in range(params['cookers']):
             self.cookers.append(Cooker(params['cooking_time'] * 60))
 
-        self.eating_time = params['restaurant_mode']['eating_time']
+        self.eating_time = params['restaurant_mode']['eating_time'] * 60
+        self.waiting_time = params['waiting_time'] * 60
+        self.delivery_time = params['delivery_time'] * 60
+        self.thinking_time = params['thinking_time'] * 60
         self.work_time_from = params['restaurant_mode']['work_time']['from'] * 60 * 60  # in seconds
         self.work_time_to = params['restaurant_mode']['work_time']['to'] * 60 * 60  # in seconds
 

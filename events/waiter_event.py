@@ -29,12 +29,13 @@ def waiter_service(waiter, model, request):
             event.Event(model.global_time + round(service_time), cooker_event.CookerCallEvent(Dish(request)))
         )
 
-    model.next_events.append(event.Event(model.global_time + round(service_time), WaiterFreeEvent(waiter, request)))
+    model.next_events.append(
+        event.Event(model.global_time + round(service_time), WaiterFreeEvent(waiter, request)))
 
 
 def delivery_service(waiter, model, dish):
     model.restaurant.ready_dishes.remove(dish)
-    delivery_time = expovariate(1 / 300)  # time to deliver food
+    delivery_time = expovariate(1 / model.restaurant.delivery_time)  # time to deliver food
     model.next_events.append(event.Event(model.global_time + round(delivery_time),
                                          WaiterFreeEvent(waiter, dish.request)))
     dish.request.dish_count -= 1
@@ -43,7 +44,7 @@ def delivery_service(waiter, model, dish):
     if dish.request.dish_count < 1:
         model.next_events.append(
             event.Event(
-                model.global_time + delivery_time + round(expovariate(1 / model.restaurant.eating_time)),
+                model.global_time + round(delivery_time + expovariate(1 / model.restaurant.eating_time)),
                 r.EatingFinishEvent(dish.request)
             )
         )
@@ -88,9 +89,9 @@ class WaiterEvent:
 
         else:
             self.request.status = State.WAITING_FOR_WAITER
-            waiting_time = 600  # wait 600s before leave the restaurant
-            model.next_events.append(event.Event(model.global_time + round(expovariate(1 / waiting_time)),
-                                                 r.LeaveEvent(self.request)))
+            model.next_events.append(
+                event.Event(model.global_time + round(expovariate(1 / model.restaurant.waiting_time)),
+                            r.LeaveEvent(self.request)))
 
     def __init__(self, request):
         self.request = request

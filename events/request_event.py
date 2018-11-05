@@ -61,8 +61,9 @@ class RequestEvent:
             logging.info("%s: Request %d took a table %d ",
                          model.human_time(), self.request.id, self.request.table.id)
             # here we have some time to read a menu before calling a waiter
-            model.next_events.append(e.Event(model.global_time + round(expovariate(1 / 300)),
-                                             w.WaiterEvent(self.request)))
+            model.next_events.append(
+                e.Event(model.global_time + round(expovariate(1 / model.restaurant.thinking_time)),
+                        w.WaiterEvent(self.request)))
         else:
             model.lost_counter += 1
 

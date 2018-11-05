@@ -10,7 +10,7 @@
     }
   ],
   "waiters": 100,
-  "cookers": 10,
+  "cookers": 100,
   "restaurant_mode": {
     "average_per_day": 300,
     "work_time": {
@@ -42,6 +42,9 @@
       "4": 0.25
     }
   },
-  "cooking_time": 20,
-  "service_time": 5
+  "cooking_time": 0.1,
+  "service_time": 0.1,
+  "waiting_time": 5,
+  "delivery_time": 5,
+  "thinking_time": 5
 }
