@@ -97,6 +97,7 @@ class Model:
         self.next_events = [e.Event(self.global_time,
                                     RequestEvent(Request(1, self.restaurant.reorder_probability)))]
 
+        # TODO: move this to stats class
         self.bad_leave_counter = 0
         self.serviced = 0
         self.seated_count = 0

@@ -14,6 +14,7 @@ import sys
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
 
+# TODO: add possibility to order dish again
 class EatingFinishEvent:
     def handle(self, model):
         """
