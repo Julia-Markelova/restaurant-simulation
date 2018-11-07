@@ -53,7 +53,6 @@ class EatingFinishEvent:
                     w.bill_service(model, waiter)
 
             self.request.reorder_probability *= 0.5
-            print("PROB: ", self.request.reorder_probability, "ID", self.request.id)
 
     def __init__(self, dish):
         self.request = dish.request
