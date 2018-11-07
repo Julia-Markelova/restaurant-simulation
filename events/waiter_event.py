@@ -2,12 +2,14 @@
 Waiter's logic is here.
 """
 
-from events import cooker_event, event, request_event as r
-from random import expovariate, randrange
-from states import RequestState, WaiterState
-from restaurant import Dish
 import logging
 import sys
+from random import expovariate, randrange
+
+from events import cooker_event, event, request_event as r
+from restaurant import Dish
+from states import RequestState, WaiterState
+import stats
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
@@ -160,6 +162,6 @@ class TableFreeEvent:
                      model.human_time(),
                      self.table.owner.id,
                      self.table.id)
-        model.serviced += 1
+        stats.serviced_counter += 1
         self.table.available = True
         self.table.owner = None

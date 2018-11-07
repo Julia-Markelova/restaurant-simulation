@@ -1,14 +1,15 @@
 from model import Model
+import stats
 
 restaurant_model = Model(open('parameters.json'))
 restaurant_model.run()
 print("---------------------------------------------\n")
-print("Сели за стол:", restaurant_model.seated_count, "\n"
-      "Не хватило стола:", restaurant_model.lost_counter, "\n"
-      "Обслужены:", restaurant_model.serviced, "\n"
-      "Слишком долго ждали:", restaurant_model.bad_leave_counter, "\n"
-      "Всего поступило:", restaurant_model.all, "\n"
-      "Дозаказали:", restaurant_model.reordered, "\n"
-      "Ушли без заказа:", restaurant_model.dislike_menu)
+print("Сели за стол:", stats.seated_counter, "\n"
+      "Не хватило стола:", stats.no_seat_counter, "\n"
+      "Обслужены:", stats.serviced_counter, "\n"
+      "Слишком долго ждали:", stats.long_waiting_leave_counter, "\n"
+      "Всего поступило:", stats.total_counter, "\n"
+      "Дозаказали:", stats.reorder_counter, "\n"
+      "Ушли без заказа:", stats.disliked_menu_counter)
 
 # for event in restaurant_model.next_events:

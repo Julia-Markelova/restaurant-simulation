@@ -4,6 +4,7 @@ Events are saved in a list with their starting time and a handle function.
 Requests are generated until last_entrance_time
 """
 
+import stats
 from random import expovariate, choices
 from events import waiter_event as w, event as e
 from restaurant import Request
@@ -39,7 +40,7 @@ class EatingFinishEvent:
             if reorder:
                 self.request.state = RequestState.WAITING_FOR_WAITER
                 logging.info("%s: Request %d will make a reorder.", model.human_time(), self.request.id)
-                model.reordered += 1
+                stats.reorder_counter += 1
                 if waiters:
                     waiter = waiters[0]
                     logging.info("%s: Waiter %d is taking a reorder of request %d.",
@@ -71,11 +72,11 @@ class LeaveEvent:
         self.request.table.owner = None
 
         if self.request.state == RequestState.WAITING_FOR_WAITER:
-            model.bad_leave_counter += 1
+            stats.long_waiting_leave_counter += 1
             logging.info("%s: Request %d left because of too long waiting",
                          model.human_time(), self.request.id)
         else:
-            model.dislike_menu += 1
+            stats.disliked_menu_counter += 1
             logging.info("%s: Request %d left because of disliking a menu",
                          model.human_time(), self.request.id)
 
@@ -92,7 +93,7 @@ class RequestEvent:
         Increment counter of visitors or lost.
         :param model: current state of model
         """
-        model.all += 1
+        stats.total_counter += 1
         # trying to seize table
         tables = list(filter(lambda t: t.size >= self.request.size and t.available, model.restaurant.tables))
         logging.info("%s: Income request %d", model.human_time(), self.request.id)
@@ -101,7 +102,8 @@ class RequestEvent:
             self.request.table = tables[0]
             self.request.table.available = False
             self.request.table.owner = self.request
-            model.seated_count += 1
+            stats.seated_counter += 1
+
             logging.info("%s: Request %d took a table %d",
                          model.human_time(), self.request.id, self.request.table.id)
             # here we have some time to read a menu and make a decision about state here or not
@@ -120,7 +122,7 @@ class RequestEvent:
                     e.Event(model.global_time + round(expovariate(1 / model.restaurant.thinking_time)),
                             w.WaiterEvent(self.request)))
         else:
-            model.lost_counter += 1
+            stats.no_seat_counter += 1
 
         people_count = int(choices(list(model.class_probability.keys()),
                                    list(model.class_probability.values()))[0])
