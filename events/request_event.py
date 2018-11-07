@@ -62,15 +62,20 @@ class EatingFinishEvent:
 class LeaveEvent:
     def handle(self, model):
         """
-        If request is waiting more then N minutes, we will lost it
+        If request is waiting more then N minutes or request does not like a menu, we will lost it
         When request is leaving, it makes its table free
         :param model: current state of model
         """
+        self.request.table.available = True
+        self.request.table.owner = None
+
         if self.request.state == RequestState.WAITING_FOR_WAITER:
-            self.request.table.available = True
-            self.request.table.owner = None
             model.bad_leave_counter += 1
             logging.info("%s: Request %d left because of too long waiting",
+                         model.human_time(), self.request.id)
+        else:
+            model.dislike_menu += 1
+            logging.info("%s: Request %d left because of disliking a menu",
                          model.human_time(), self.request.id)
 
     def __init__(self, request):
@@ -96,12 +101,23 @@ class RequestEvent:
             self.request.table.available = False
             self.request.table.owner = self.request
             model.seated_count += 1
-            logging.info("%s: Request %d took a table %d ",
+            logging.info("%s: Request %d took a table %d",
                          model.human_time(), self.request.id, self.request.table.id)
-            # here we have some time to read a menu before calling a waiter
-            model.next_events.append(
-                e.Event(model.global_time + round(expovariate(1 / model.restaurant.thinking_time)),
-                        w.WaiterEvent(self.request)))
+            # here we have some time to read a menu and make a decision about state here or not
+            leaving = choices([False, True],
+                              [1 - model.restaurant.leaving_probability,
+                               model.restaurant.leaving_probability])[0]
+
+            if leaving:
+                model.next_events.append(
+                    e.Event(model.global_time + round(expovariate(1 / model.restaurant.thinking_time)),
+                            LeaveEvent(self.request))
+                )
+
+            else:
+                model.next_events.append(
+                    e.Event(model.global_time + round(expovariate(1 / model.restaurant.thinking_time)),
+                            w.WaiterEvent(self.request)))
         else:
             model.lost_counter += 1
 

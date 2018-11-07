@@ -102,4 +102,5 @@ class Model:
         self.seated_count = 0
         self.lost_counter = 0
         self.reordered = 0
+        self.dislike_menu = 0
         self.all = 0
