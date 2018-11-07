@@ -65,7 +65,8 @@ class Model:
         """
         current_interval = list(
             filter(
-                lambda interval: interval.fromInterval <= self.global_time <= interval.toInterval, self.intervals)
+                lambda interval: interval.fromInterval <= self.global_time <= interval.toInterval,
+                self.intervals)
         )[0]
 
         return current_interval.interval
