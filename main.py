@@ -6,6 +6,7 @@ print("Сели за стол:", restaurant_model.seated_count,
       "Не хватило стола:", restaurant_model.lost_counter,
       "Обслужены:", restaurant_model.serviced,
       "Слишком долго ждали:", restaurant_model.bad_leave_counter,
-      "Всего поступило:", restaurant_model.all)
+      "Всего поступило:", restaurant_model.all,
+      "Дозаказали:", restaurant_model.reordered)
 
 # for event in restaurant_model.next_events:

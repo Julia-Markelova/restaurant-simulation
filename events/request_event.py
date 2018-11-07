@@ -18,7 +18,8 @@ class EatingFinishEvent:
     def handle(self, model):
         """
         Delivered dishes decremented (ate).
-        If there are no dish we wait, we will call a waiter for a bill (now).
+        If there are no dish we wait, we will call a waiter for an extra order with reorder_probability.
+        On the other way, request will call a waiter for a bill.
         If there are no waiter we will wait while he comes.
         :param model: current state of model
         """
@@ -27,13 +28,32 @@ class EatingFinishEvent:
         logging.info("%s: Request %d ate a dish %d. Remaining dishes: %d",
                      model.human_time(), self.request.id, self.dish.id, self.request.dish_count)
 
-        if self.request.dish_count == 0:
+        # to fix a bug with negative dishes
+        if self.request.dish_count < 1:
+            self.request.dish_count = 0
             waiters = list(filter(lambda wait: wait.state == WaiterState.FREE, model.restaurant.waiters))
-            self.request.state = RequestState.WAITING_FOR_BILL
+            reorder = choices([False, True],
+                              [1 - self.request.reorder_probability, self.request.reorder_probability])[0]
 
-            if waiters:
-                waiter = waiters[0]
-                w.bill_service(model, waiter)
+            if reorder:
+                self.request.state = RequestState.WAITING_FOR_WAITER
+                logging.info("%s: Request %d will make a reorder.", model.human_time(), self.request.id)
+                model.reordered += 1
+                if waiters:
+                    waiter = waiters[0]
+                    logging.info("%s: Waiter %d is taking a reorder of request %d.",
+                                 model.human_time(), waiter.id, self.request.id)
+                    w.waiter_service(waiter, model, self.request)
+
+            else:
+                self.request.state = RequestState.WAITING_FOR_BILL
+                logging.info("%s: Request %d is going to leave.", model.human_time(), self.request.id)
+                if waiters:
+                    waiter = waiters[0]
+                    w.bill_service(model, waiter)
+
+            self.request.reorder_probability *= 0.5
+            print("PROB: ", self.request.reorder_probability, "ID", self.request.id)
 
     def __init__(self, dish):
         self.request = dish.request
@@ -96,7 +116,8 @@ class RequestEvent:
         if model.global_time < model.restaurant.last_entrance_time:
             next_request_time = round(expovariate(1 / model.current_request_mean()))
             model.next_events.append(e.Event(model.global_time + next_request_time,
-                                             RequestEvent(Request(people_count))))
+                                             RequestEvent(Request(people_count,
+                                                                  model.restaurant.reorder_probability))))
 
     def __init__(self, request):
         self.request = request

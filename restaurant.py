@@ -35,6 +35,8 @@ class Restaurant:
         self.work_time_from = params['restaurant_mode']['work_time']['from'] * 60 * 60  # in seconds
         self.work_time_to = params['restaurant_mode']['work_time']['to'] * 60 * 60  # in seconds
         self.last_entrance_time = params['restaurant_mode']['work_time']['last_entrance_time'] * 60 * 60
+        self.reorder_probability = params['reorder_probability']
+        self.leaving_probability = params['leaving_probability']
 
 
 class Table:
@@ -80,18 +82,20 @@ class Cooker:
 class Request:
     _ids = count(1)
 
-    def __init__(self, size):
+    def __init__(self, size, reorder_probability):
         """
         Constructor for request
         table: which table request is chosen
         dish_count: count of ordered dishes
         :param size: how many people are coming
+        :param reorder_probability: float describing probability of on more order
         """
         self.id = next(self._ids)
         self.size = size
         self.table = None
         self.state = RequestState.OK
         self.dish_count = 0
+        self.reorder_probability = reorder_probability
 
 
 class Dish:

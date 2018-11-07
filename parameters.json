@@ -47,5 +47,7 @@
   "service_time": 5,
   "waiting_time": 5,
   "delivery_time": 5,
-  "thinking_time": 5
+  "thinking_time": 5,
+  "leaving_probability": 0.05,
+  "reorder_probability": 0.5
 }

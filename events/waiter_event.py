@@ -22,6 +22,7 @@ def waiter_service(waiter, model, request):
     :param request:
     """
     waiter.state = WaiterState.SERVICING
+    request.state = RequestState.OK  # because request already has a waiter
     logging.info("%s: Waiter %d is started servicing request %d", model.human_time(), waiter.id, request.id)
     service_time = 0
     dish_count = 0
@@ -31,6 +32,7 @@ def waiter_service(waiter, model, request):
         dish_count += randrange(1, 3, 1)
 
     request.dish_count = dish_count
+    logging.info("%s: Request %d ordered %d dishes", model.human_time(), request.id, dish_count)
 
     for dish in range(dish_count):
         model.next_events.append(

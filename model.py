@@ -94,10 +94,12 @@ class Model:
         self.global_time = self.restaurant.work_time_from
         self.intervals = self.init_work_mode(params['restaurant_mode'])
         self.class_probability = params['restaurant_mode']['class_probability']
-        self.next_events = [e.Event(self.global_time, RequestEvent(Request(1)))]
+        self.next_events = [e.Event(self.global_time,
+                                    RequestEvent(Request(1, self.restaurant.reorder_probability)))]
 
         self.bad_leave_counter = 0
         self.serviced = 0
         self.seated_count = 0
         self.lost_counter = 0
+        self.reordered = 0
         self.all = 0
