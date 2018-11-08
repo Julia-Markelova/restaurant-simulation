@@ -1,5 +1,7 @@
 from functools import reduce
 
+from restaurant_simulation.utils import human_readable_time
+
 stay_times_normal_leave = []
 stay_times_bad_menu_leave = []
 stay_times_long_waiting_leave = []
@@ -24,15 +26,15 @@ total_counter = 0
 
 def avg_stay_time(stay_time):
     if stay_time:
-        return reduce(lambda x, y: x + y, stay_time) / len(stay_time)
+        return human_readable_time(round(reduce(lambda x, y: x + y, stay_time) / len(stay_time)))
     else:
         return 0
 
 
 def worker_load(work_hours, day_len):
     if work_hours:
-        return {k: v / day_len for k, v in work_hours.items()}
+        return {k: round(v / day_len, 3) for k, v in work_hours.items()}
+
 # TODO: closing strategy
 # TODO: round delete
 # TODO: events in time interval
-# TODO: wtf with waiters and cookers count???
