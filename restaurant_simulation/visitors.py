@@ -107,7 +107,7 @@ class LeaveEvent:
             st.long_waiting_leave_counter += 1
             logging.info("%s: Request %d left because of too long waiting",
                          human_readable_date_time(model.global_time), self.request.id)
-        else:
+        elif self.request.state == RequestState.LEAVING_BAD_MENU:
             st.stay_times_bad_menu_leave.append(model.global_time - self.request.income_time)
             st.disliked_menu_counter += 1
             logging.info("%s: Request %d left because of disliking a menu",
@@ -145,6 +145,7 @@ class RequestEvent:
                                model.restaurant.leaving_probability])[0]
 
             if leaving:
+                self.request.state = RequestState.LEAVING_BAD_MENU
                 model.next_events.append(
                     e.Event(model.global_time + round(expovariate(1 / model.restaurant.thinking_time)),
                             LeaveEvent(self.request))

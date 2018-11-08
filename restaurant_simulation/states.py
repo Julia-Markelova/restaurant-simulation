@@ -7,6 +7,7 @@ from enum import Enum, auto
 
 class RequestState(Enum):
     WAITING_FOR_WAITER = auto()
+    LEAVING_BAD_MENU = auto()
     OK = auto()
     WAITING_FOR_BILL = auto()
 

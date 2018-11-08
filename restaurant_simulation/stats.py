@@ -26,7 +26,19 @@ total_counter = 0
 
 def avg_stay_time(stay_time):
     if stay_time:
-        return human_readable_time(round(reduce(lambda x, y: x + y, stay_time) / len(stay_time)))
+        return human_readable_time(count_avg(stay_time, 0))
+    else:
+        return 0
+
+
+def count_avg(list_of_values, scale):
+    if list_of_values:
+        avg = reduce(lambda x, y: x + y, list_of_values) / len(list_of_values)
+
+        if scale > 0:
+            return round(avg, scale)
+        else:
+            return round(avg)
     else:
         return 0
 

@@ -9,7 +9,7 @@
       "count": 10
     }
   ],
-  "waiters": 5,
+  "waiters": 1,
   "cookers": 10,
   "restaurant_mode": {
     "average_per_day": 100,
