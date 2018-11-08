@@ -1,7 +1,8 @@
-from model import Model
-import stats
+from restaurant_simulation import stats, model
 
-restaurant_model = Model(open('parameters.json'))
+name = "restaurant_model"
+
+restaurant_model = model.Model(open('parameters.json'))
 restaurant_model.run()
 print("---------------------------------------------\n")
 print("Сели за стол:", stats.seated_counter, "\n"

@@ -1,13 +1,15 @@
 """
 This module consists of the most important objects of the simulator.
-There are restaurant's initialization with custom parameters.
+There are restaurant_simulation's initialization with custom parameters.
 Also average intervals between requests according to current time are calculated.
 All time in system is in seconds (except user's input).
 """
 
 import json
-from restaurant import *
-from events.request_event import *
+
+from restaurant_simulation.event import Event
+from restaurant_simulation.restaurant import Restaurant
+from restaurant_simulation.visitors import *
 
 
 class RequestInterval:
@@ -24,27 +26,6 @@ class RequestInterval:
 
 
 class Model:
-    """
-    Generating of requests
-    """
-
-    def human_time(self):
-        """
-        Convert global time in the system to the human-readable time
-        :return: human-readable time as a string
-        """
-        day = str(self.global_time // (3600 * 24) + 1)
-        hours = str(self.global_time // 3600 % 24)
-        minutes = str((self.global_time // 60) % 60)
-        seconds = str(self.global_time % 60)
-
-        if len(minutes) != 2:
-            minutes = "0" + minutes
-
-        if len(seconds) != 2:
-            seconds = "0" + seconds
-
-        return "Day " + day + " " + hours + ":" + minutes + ":" + seconds
 
     def run(self):
         """
@@ -60,7 +41,7 @@ class Model:
 
     def current_request_mean(self):
         """
-        Calculate average interval between requests according to current time
+
         :return: average interval in seconds
         """
         current_interval = list(
@@ -71,28 +52,21 @@ class Model:
 
         return current_interval.interval
 
-    def init_work_mode(self, mode):
-        """
-        Add average intervals in a model
-        :param mode: restaurant params in json
-        :return: a list with average interval and its time
-        """
-        intervals = []
-
-        for item in mode['attendance']:
-            intervals.append(RequestInterval(mode['average_per_day'], item))
-
-        return intervals
-
     def __init__(self, data):
         """
-        Initializing restaurant's parameters
+        Initializing restaurant_simulation's parameters
+        Calculating average interval between requests according to current time
+        Adding average intervals in a model
         :param data: json file with params
         """
         params = json.load(data)
         self.restaurant = Restaurant(params)
         self.global_time = self.restaurant.work_time_from
-        self.intervals = self.init_work_mode(params['restaurant_mode'])
+        self.intervals = []
+
+        for item in params['restaurant_mode']['attendance']:
+            self.intervals.append(RequestInterval(params['restaurant_mode']['average_per_day'], item))
+
         self.class_probability = params['restaurant_mode']['class_probability']
-        self.next_events = [e.Event(self.global_time,
-                                    RequestEvent(Request(1, self.restaurant.reorder_probability)))]
+        self.next_events = [Event(self.global_time,
+                                  RequestEvent(Request(1, self.restaurant.reorder_probability)))]
