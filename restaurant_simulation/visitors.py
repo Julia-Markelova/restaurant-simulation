@@ -13,7 +13,7 @@ import restaurant_simulation.event as e
 import restaurant_simulation.stats as st
 import restaurant_simulation.waiters as w
 from restaurant_simulation.states import RequestState, WaiterState
-from restaurant_simulation.utils import human_readable_time
+from restaurant_simulation.utils import human_readable_date_time
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
@@ -21,7 +21,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 class Request:
     _ids = count(1)
 
-    def __init__(self, size, reorder_probability):
+    def __init__(self, size, reorder_probability, income_time):
         """
         Constructor for request
         table: which table request is chosen
@@ -35,6 +35,7 @@ class Request:
         self.state = RequestState.OK
         self.dish_count = 0
         self.reorder_probability = reorder_probability
+        self.income_time = income_time
 
 
 class EatingFinishEvent:
@@ -49,7 +50,7 @@ class EatingFinishEvent:
         self.request.dish_count -= 1
         self.request.state = RequestState.OK
         logging.info("%s: Request %d ate a dish %d. Remaining dishes: %d",
-                     human_readable_time(model.global_time),
+                     human_readable_date_time(model.global_time),
                      self.request.id,
                      self.dish.id,
                      self.request.dish_count)
@@ -64,13 +65,13 @@ class EatingFinishEvent:
             if reorder:
                 self.request.state = RequestState.WAITING_FOR_WAITER
                 logging.info("%s: Request %d will make a reorder.",
-                             human_readable_time(model.global_time),
+                             human_readable_date_time(model.global_time),
                              self.request.id)
                 st.reorder_counter += 1
                 if waiters:
                     waiter = waiters[0]
                     logging.info("%s: Waiter %d is taking a reorder of request %d.",
-                                 human_readable_time(model.global_time),
+                                 human_readable_date_time(model.global_time),
                                  waiter.id,
                                  self.request.id)
                     waiter.service(model, self.request)
@@ -78,7 +79,7 @@ class EatingFinishEvent:
             else:
                 self.request.state = RequestState.WAITING_FOR_BILL
                 logging.info("%s: Request %d is going to leave.",
-                             human_readable_time(model.global_time),
+                             human_readable_date_time(model.global_time),
                              self.request.id)
                 if waiters:
                     waiter = waiters[0]
@@ -102,13 +103,15 @@ class LeaveEvent:
         self.request.table.owner = None
 
         if self.request.state == RequestState.WAITING_FOR_WAITER:
+            st.stay_times_long_waiting_leave.append(model.global_time - self.request.income_time)
             st.long_waiting_leave_counter += 1
             logging.info("%s: Request %d left because of too long waiting",
-                         human_readable_time(model.global_time), self.request.id)
+                         human_readable_date_time(model.global_time), self.request.id)
         else:
+            st.stay_times_bad_menu_leave.append(model.global_time - self.request.income_time)
             st.disliked_menu_counter += 1
             logging.info("%s: Request %d left because of disliking a menu",
-                         human_readable_time(model.global_time), self.request.id)
+                         human_readable_date_time(model.global_time), self.request.id)
 
     def __init__(self, request):
         self.request = request
@@ -126,7 +129,7 @@ class RequestEvent:
         st.total_counter += 1
         # trying to seize table
         tables = list(filter(lambda t: t.size >= self.request.size and t.available, model.restaurant.tables))
-        logging.info("%s: Income request %d", human_readable_time(model.global_time), self.request.id)
+        logging.info("%s: Income request %d", human_readable_date_time(model.global_time), self.request.id)
 
         if tables:
             self.request.table = tables[0]
@@ -135,7 +138,7 @@ class RequestEvent:
             st.seated_counter += 1
 
             logging.info("%s: Request %d took a table %d",
-                         human_readable_time(model.global_time), self.request.id, self.request.table.id)
+                         human_readable_date_time(model.global_time), self.request.id, self.request.table.id)
             # here we have some time to read a menu and make a decision about state here or not
             leaving = choices([False, True],
                               [1 - model.restaurant.leaving_probability,
@@ -165,7 +168,8 @@ class RequestEvent:
             next_request_time = round(expovariate(1 / model.current_request_mean()))
             model.next_events.append(e.Event(model.global_time + next_request_time,
                                              RequestEvent(Request(people_count,
-                                                                  model.restaurant.reorder_probability))))
+                                                                  model.restaurant.reorder_probability,
+                                                                  model.global_time + next_request_time))))
 
     def __init__(self, request):
         self.request = request

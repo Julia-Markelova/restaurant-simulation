@@ -69,4 +69,5 @@ class Model:
 
         self.class_probability = params['restaurant_mode']['class_probability']
         self.next_events = [Event(self.global_time,
-                                  RequestEvent(Request(1, self.restaurant.reorder_probability)))]
+                                  RequestEvent(Request(1, self.restaurant.reorder_probability,
+                                                       self.global_time)))]

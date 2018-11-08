@@ -11,7 +11,7 @@ import restaurant_simulation.stats as st
 import restaurant_simulation.visitors as vis
 from restaurant_simulation.event import Event
 from restaurant_simulation.states import RequestState, WaiterState
-from restaurant_simulation.utils import human_readable_time
+from restaurant_simulation.utils import human_readable_date_time
 from restaurant_simulation.kitchen import CookerCallEvent
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
@@ -32,7 +32,7 @@ class Waiter:
         self.state = WaiterState.SERVICING
         request.state = RequestState.OK  # because request already has a waiter
         logging.info("%s: Waiter %d is started servicing request %d",
-                     human_readable_time(model.global_time),
+                     human_readable_date_time(model.global_time),
                      self.id,
                      request.id)
         service_time = 0
@@ -43,8 +43,9 @@ class Waiter:
             dish_count += randrange(1, 3, 1)
 
         request.dish_count = dish_count
+        st.dish_counter.append(dish_count)
         logging.info("%s: Request %d ordered %d dishes",
-                     human_readable_time(model.global_time),
+                     human_readable_date_time(model.global_time),
                      request.id,
                      dish_count)
 
@@ -56,11 +57,16 @@ class Waiter:
         model.next_events.append(
             Event(model.global_time + round(service_time), WaiterFreeEvent(self, request)))
 
+        st.service_time.append(round(service_time))
+        st.waiter_hours[self.id] += round(service_time)
+
     def deliver(self, model, dish):
         self.state = WaiterState.DELIVERING_DISH
         model.restaurant.ready_dishes.remove(dish)
-        delivery_time = expovariate(1 / model.restaurant.delivery_time)  # time to deliver food
-        model.next_events.append(Event(model.global_time + round(delivery_time),
+        delivery_time = round(expovariate(1 / model.restaurant.delivery_time))  # time to deliver food
+        st.delivery_time.append(delivery_time)
+        st.waiter_hours[self.id] += round(delivery_time)
+        model.next_events.append(Event(model.global_time + delivery_time,
                                        WaiterFreeEvent(self, dish.request, dish)))
         model.next_events.append(
             Event(
@@ -83,13 +89,15 @@ class Waiter:
         if waiting_for_bill:
             self.state = WaiterState.BILLING
             leaving = waiting_for_bill[0]
-            logging.info("%s: Request %d is billing by waiter %d", human_readable_time(model.global_time),
+            logging.info("%s: Request %d is billing by waiter %d", human_readable_date_time(model.global_time),
                          leaving.id, self.id)
             leaving.state = RequestState.OK
-            service_time = expovariate(1 / self.service_time)
-            model.next_events.append(Event(model.global_time + round(service_time),
+            service_time = round(expovariate(1 / self.service_time))
+            st.service_time.append(service_time)
+            st.waiter_hours[self.id] += round(service_time)
+            model.next_events.append(Event(model.global_time + service_time,
                                            WaiterFreeEvent(self, leaving)))
-            model.next_events.append(Event(model.global_time + round(service_time),
+            model.next_events.append(Event(model.global_time + service_time,
                                            TableFreeEvent(leaving.table)))
 
     def __init__(self, service_time):
@@ -100,6 +108,7 @@ class Waiter:
         self.service_time = service_time
         self.id = next(self._ids)
         self.state = WaiterState.FREE
+        st.waiter_hours[self.id] = 0
 
 
 class Dish:
@@ -145,15 +154,15 @@ class WaiterFreeEvent:
 
         if self.waiter.state == WaiterState.DELIVERING_DISH:
             logging.info("%s: Waiter %d delivered dish %d to request %d",
-                         human_readable_time(model.global_time),
+                         human_readable_date_time(model.global_time),
                          self.waiter.id, self.dish.id, self.request.id)
         elif self.waiter.state == WaiterState.BILLING:
             logging.info("%s: Waiter %d finished billing request %d",
-                         human_readable_time(model.global_time),
+                         human_readable_date_time(model.global_time),
                          self.waiter.id, self.request.id)
         elif self.waiter.state == WaiterState.SERVICING:
             logging.info("%s: Waiter %d finished servicing request %d",
-                         human_readable_time(model.global_time),
+                         human_readable_date_time(model.global_time),
                          self.waiter.id, self.request.id)
 
         self.waiter.state = WaiterState.FREE
@@ -191,9 +200,10 @@ class TableFreeEvent:
 
     def handle(self, model):
         logging.info("%s: Request %d is leaving table %d",
-                     human_readable_time(model.global_time),
+                     human_readable_date_time(model.global_time),
                      self.table.owner.id,
                      self.table.id)
         st.serviced_counter += 1
+        st.stay_times_normal_leave.append(model.global_time - self.table.owner.income_time)
         self.table.available = True
         self.table.owner = None

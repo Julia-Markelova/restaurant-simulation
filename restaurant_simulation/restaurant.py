@@ -23,10 +23,10 @@ class Restaurant:
             for index in range(table_class['count']):
                 self.tables.append(Table(table_class['size']))
 
-        for index in range(params['waiters']):
+        for index in range(0, params['waiters']):
             self.waiters.append(waiters.Waiter(params['service_time'] * 60))
 
-        for index in range(params['cookers']):
+        for index in range(0, params['cookers']):
             self.cookers.append(kitchen.Cooker(params['cooking_time'] * 60))
 
         self.eating_time = params['restaurant_mode']['eating_time'] * 60
