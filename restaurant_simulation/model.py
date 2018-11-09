@@ -52,6 +52,12 @@ class Model:
                 event.handle(self)
                 self.next_events.remove(event)
 
+            length = len(
+                list(filter(lambda t: not t.available and t.owner.state == RequestState.WAITING_FOR_WAITER, self.restaurant.tables))
+            )
+
+            st.avg_waiting_queue[length] += 1
+
             self.global_time += 1
 
         logging.info("%s: Restaurant is closing",

@@ -26,6 +26,10 @@ if __name__ == '__main__':
                           stats.avg_time(stats.delivery_time)])
     pretty_table.add_row(["Average dish count",
                           stats.count_avg(stats.dish_counter, 3)])
+    pretty_table.add_row(["Average waiting queue length",
+                          stats.avg_len_dict(stats.avg_waiting_queue,
+                                             restaurant_model.restaurant.work_time_to
+                                             - restaurant_model.restaurant.work_time_from)])
 
     print(pretty_table)
 

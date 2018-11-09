@@ -1,4 +1,5 @@
 from functools import reduce
+from collections import defaultdict
 
 from restaurant_simulation.utils import human_readable_time
 
@@ -15,6 +16,10 @@ billed_dish_counter = []
 cooker_hours = {}
 waiter_hours = {}
 request_waiting = {}
+
+avg_waiting_queue = defaultdict(int)
+dishes_queue = {}
+billing_queue = {}
 
 long_waiting_leave_counter = 0
 serviced_counter = 0
@@ -73,3 +78,13 @@ def total_worker_load(worker_id, worker_hours):
         sum_keys += (key.toInterval - key.fromInterval)
 
     return round(sum_seconds / sum_keys, 3)
+
+
+def avg_len_dict(a_dict, total):
+    a_list = [key * value / total for key, value in a_dict.items()]
+    return round(reduce(lambda a, b: a + b, a_list), 6)
+
+# TODO: len of ready_dishes, waiting for a bill, waiting for a service
+# TODO: replace dict with defaultdict
+# TODO: give normal names to all this shit
+# TODO: fix officant overload

@@ -9,7 +9,7 @@
       "count": 10
     }
   ],
-  "waiters": 12,
+  "waiters": 10,
   "cookers": 20,
   "restaurant_mode": {
     "average_per_day": 100,
@@ -47,7 +47,7 @@
   },
   "cooking_time": 15,
   "service_time": 3,
-  "waiting_time": 5,
+  "waiting_time": 40,
   "delivery_time": 2,
   "thinking_time": 5,
   "leaving_probability": 0.05,
