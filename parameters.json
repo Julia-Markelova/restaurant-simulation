@@ -18,23 +18,23 @@
       "to": 22,
       "last_entrance_time": 21,
       "over_work_time_limit": 0,
-      "strict_close": "False"
+      "strict_close": "True"
     },
     "attendance": [
       {
         "from": 10,
         "to": 14,
-        "part": 1
+        "part": 0.3
       },
       {
         "from": 14,
         "to": 18,
-        "part": 0.01
+        "part": 0.3
       },
       {
         "from": 18,
         "to": 22,
-        "part": 0.01
+        "part": 0.4
       }
     ],
     "eating_time": 10,

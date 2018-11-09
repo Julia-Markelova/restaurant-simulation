@@ -22,7 +22,11 @@ class RequestInterval:
         """
         self.fromInterval = item['from'] * 60 * 60
         self.toInterval = item['to'] * 60 * 60
-        self.interval = round((self.toInterval - self.fromInterval) / (total * item['part']))
+
+        if item['part'] != 0:
+            self.interval = round((self.toInterval - self.fromInterval) / (total * item['part']))
+        else:
+            self.interval = 0
 
 
 class Model:
@@ -32,6 +36,15 @@ class Model:
         Executing events while they are in the system.
         """
         while self.global_time < self.restaurant.work_time_to or self.next_events and not self.restaurant.strict_close:
+            interval = self.current_request_interval()
+
+            if interval.fromInterval == self.global_time and self.current_request_mean() != 0:
+                self.next_events.append(
+                    Event(
+                        self.global_time,
+                        RequestEvent(Request(1, self.restaurant.reorder_probability, self.global_time))
+                    )
+                )
 
             for event in sorted(filter(lambda ev: ev.when <= self.global_time, self.next_events),
                                 key=lambda ev: ev.when):
@@ -43,16 +56,21 @@ class Model:
         logging.info("%s: Restaurant is closing",
                      human_readable_date_time(self.global_time))
 
-    def current_request_mean(self):
-        """
-
-        :return: average interval in seconds
-        """
-        current_interval = list(
+    def request_interval(self, time):
+        return list(
             filter(
-                lambda interval: interval.fromInterval <= self.global_time <= interval.toInterval,
+                lambda interval: interval.fromInterval <= time <= interval.toInterval,
                 self.intervals)
         )[0]
+
+    def current_request_interval(self):
+        return self.request_interval(self.global_time)
+
+    def current_request_mean(self):
+        """
+        :return: average interval in seconds
+        """
+        current_interval = self.current_request_interval()
 
         return current_interval.interval
 
@@ -72,6 +90,4 @@ class Model:
             self.intervals.append(RequestInterval(params['restaurant_mode']['average_per_day'], item))
 
         self.class_probability = params['restaurant_mode']['class_probability']
-        self.next_events = [Event(self.global_time,
-                                  RequestEvent(Request(1, self.restaurant.reorder_probability,
-                                                       self.global_time)))]
+        self.next_events = []

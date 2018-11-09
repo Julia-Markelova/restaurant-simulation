@@ -176,8 +176,10 @@ class RequestEvent:
         Generating next event in seconds according to current_mean and until last_entrance_time.
         Increment counter of requests
         """
-        if model.global_time < model.restaurant.last_entrance_time:
-            next_request_time = expovariate(1 / model.current_request_mean())
+        next_request_time = expovariate(1 / model.current_request_mean())
+
+        if model.global_time < model.restaurant.last_entrance_time \
+                and model.request_interval(model.global_time + next_request_time).interval != 0:
             model.next_events.append(e.Event(model.global_time + next_request_time,
                                              RequestEvent(Request(people_count,
                                                                   model.restaurant.reorder_probability,

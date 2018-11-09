@@ -206,7 +206,6 @@ class TableFreeEvent:
                      self.table.owner.id,
                      self.table.id)
         st.billed_dish_counter.append(self.table.owner.billed_dish_counter)
-        print("PAID (dish),", self.table.owner.billed_dish_counter, "request", self.table.owner.id)
         st.serviced_counter += 1
         st.stay_times_normal_leave.append(model.global_time - self.table.owner.income_time)
         self.table.available = True

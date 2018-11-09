@@ -53,6 +53,4 @@ def count_sum(list_of_values):
     if list_of_values:
         return reduce(lambda x, y: x + y, list_of_values)
 
-# TODO: closing strategy
-# TODO: calculate count of dishes
 # TODO: calculate load depends on current time
