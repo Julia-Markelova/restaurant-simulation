@@ -10,6 +10,7 @@ cook_time = []
 service_time = []
 delivery_time = []
 dish_counter = []
+billed_dish_counter = []
 
 cooker_hours = {}
 waiter_hours = {}
@@ -47,4 +48,11 @@ def worker_load(work_hours, day_len):
     if work_hours:
         return {k: round(v / day_len, 3) for k, v in work_hours.items()}
 
+
+def count_sum(list_of_values):
+    if list_of_values:
+        return reduce(lambda x, y: x + y, list_of_values)
+
 # TODO: closing strategy
+# TODO: calculate count of dishes
+# TODO: calculate load depends on current time

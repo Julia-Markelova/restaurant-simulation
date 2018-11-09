@@ -34,6 +34,7 @@ class Request:
         self.table = None
         self.state = RequestState.OK
         self.dish_count = 0
+        self.billed_dish_counter = 0
         self.reorder_probability = reorder_probability
         self.income_time = income_time
         self.reorder = False
@@ -63,7 +64,7 @@ class EatingFinishEvent:
             reorder = choices([False, True],
                               [1 - self.request.reorder_probability, self.request.reorder_probability])[0]
 
-            if reorder:
+            if reorder and model.global_time <= model.restaurant.last_entrance_time:
                 self.request.state = RequestState.WAITING_FOR_WAITER
                 logging.info("%s: Request %d will make a reorder.",
                              human_readable_date_time(model.global_time),
@@ -105,19 +106,21 @@ class LeaveEvent:
         When request is leaving, it makes its table free
         :param model: current state of model
         """
-        self.request.table.available = True
-        self.request.table.owner = None
 
-        if self.request.state == RequestState.WAITING_FOR_WAITER:
-            st.stay_times_long_waiting_leave.append(model.global_time - self.request.income_time)
-            st.long_waiting_leave_counter += 1
-            logging.info("%s: Request %d left because of too long waiting",
-                         human_readable_date_time(model.global_time), self.request.id)
-        elif self.request.state == RequestState.LEAVING_BAD_MENU:
-            st.stay_times_bad_menu_leave.append(model.global_time - self.request.income_time)
-            st.disliked_menu_counter += 1
-            logging.info("%s: Request %d left because of disliking a menu",
-                         human_readable_date_time(model.global_time), self.request.id)
+        if self.request.state == RequestState.WAITING_FOR_WAITER or self.request.state == RequestState.LEAVING_BAD_MENU:
+            self.request.table.available = True
+            self.request.table.owner = None
+
+            if self.request.state == RequestState.WAITING_FOR_WAITER:
+                st.stay_times_long_waiting_leave.append(model.global_time - self.request.income_time)
+                st.long_waiting_leave_counter += 1
+                logging.info("%s: Request %d left because of too long waiting",
+                             human_readable_date_time(model.global_time), self.request.id)
+            elif self.request.state == RequestState.LEAVING_BAD_MENU:
+                st.stay_times_bad_menu_leave.append(model.global_time - self.request.income_time)
+                st.disliked_menu_counter += 1
+                logging.info("%s: Request %d left because of disliking a menu",
+                             human_readable_date_time(model.global_time), self.request.id)
 
     def __init__(self, request):
         self.request = request
@@ -163,6 +166,8 @@ class RequestEvent:
                             w.WaiterEvent(self.request)))
         else:
             st.no_seat_counter += 1
+            logging.info("%s: Request %d left because there are not free table",
+                         human_readable_date_time(model.global_time), self.request.id)
 
         people_count = int(choices(list(model.class_probability.keys()),
                                    list(model.class_probability.values()))[0])

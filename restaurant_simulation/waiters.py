@@ -43,7 +43,9 @@ class Waiter:
             dish_count += randrange(1, 3, 1)
 
         request.dish_count = dish_count
+        request.billed_dish_counter += dish_count
         st.dish_counter.append(dish_count)
+
         logging.info("%s: Request %d ordered %d dishes",
                      human_readable_date_time(model.global_time),
                      request.id,
@@ -80,7 +82,7 @@ class Waiter:
             map(
                 lambda t: t.owner,
                 filter(
-                    lambda table: table.owner is not None and table.owner.state == RequestState.WAITING_FOR_BILL,
+                    lambda table: not table.available and table.owner.state == RequestState.WAITING_FOR_BILL,
                     model.restaurant.tables
                 )
             )
@@ -203,6 +205,8 @@ class TableFreeEvent:
                      human_readable_date_time(model.global_time),
                      self.table.owner.id,
                      self.table.id)
+        st.billed_dish_counter.append(self.table.owner.billed_dish_counter)
+        print("PAID (dish),", self.table.owner.billed_dish_counter, "request", self.table.owner.id)
         st.serviced_counter += 1
         st.stay_times_normal_leave.append(model.global_time - self.table.owner.income_time)
         self.table.available = True

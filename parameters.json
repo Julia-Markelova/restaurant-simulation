@@ -9,30 +9,32 @@
       "count": 10
     }
   ],
-  "waiters": 5,
-  "cookers": 10,
+  "waiters": 7,
+  "cookers": 7,
   "restaurant_mode": {
     "average_per_day": 100,
     "work_time": {
       "from": 10,
       "to": 22,
-      "last_entrance_time": 21
+      "last_entrance_time": 21,
+      "over_work_time_limit": 0,
+      "strict_close": "False"
     },
     "attendance": [
       {
         "from": 10,
         "to": 14,
-        "part": 0.2
+        "part": 1
       },
       {
         "from": 14,
         "to": 18,
-        "part": 0.3
+        "part": 0.01
       },
       {
         "from": 18,
         "to": 22,
-        "part": 0.5
+        "part": 0.01
       }
     ],
     "eating_time": 10,

@@ -38,6 +38,11 @@ class Restaurant:
         self.last_entrance_time = params['restaurant_mode']['work_time']['last_entrance_time'] * 60 * 60
         self.reorder_probability = params['reorder_probability']
         self.leaving_probability = params['leaving_probability']
+        self.over_work_time_limit = params['restaurant_mode']['work_time']['over_work_time_limit'] * 60 * 60
+        self.strict_close = params['restaurant_mode']['work_time']['strict_close'] == "True"
+
+        if self.strict_close:
+            self.work_time_to += self.over_work_time_limit
 
 
 class Table:

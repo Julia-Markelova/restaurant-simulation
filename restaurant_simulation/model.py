@@ -22,7 +22,7 @@ class RequestInterval:
         """
         self.fromInterval = item['from'] * 60 * 60
         self.toInterval = item['to'] * 60 * 60
-        self.interval = round(1 / (total * item['part'] / (self.toInterval - self.fromInterval)))
+        self.interval = round((self.toInterval - self.fromInterval) / (total * item['part']))
 
 
 class Model:
@@ -31,7 +31,7 @@ class Model:
         """
         Executing events while they are in the system.
         """
-        while self.global_time < self.restaurant.work_time_to or self.next_events:
+        while self.global_time < self.restaurant.work_time_to or self.next_events and not self.restaurant.strict_close:
 
             for event in sorted(filter(lambda ev: ev.when <= self.global_time, self.next_events),
                                 key=lambda ev: ev.when):
@@ -39,6 +39,9 @@ class Model:
                 self.next_events.remove(event)
 
             self.global_time += 1
+
+        logging.info("%s: Restaurant is closing",
+                     human_readable_date_time(self.global_time))
 
     def current_request_mean(self):
         """

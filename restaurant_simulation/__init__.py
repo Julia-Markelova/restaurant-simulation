@@ -55,4 +55,16 @@ if __name__ == '__main__':
     pretty_table.add_row(["Total", stats.total_counter])
 
     print(pretty_table)
+
+    pretty_table = PrettyTable(["Measure", "Value"])
+    pretty_table.add_row(["Ordered dishes", stats.count_sum(stats.dish_counter)])
+    pretty_table.add_row(["Billed dishes", stats.count_sum(stats.billed_dish_counter)])
+    pretty_table.add_row(["Not billed dishes (because of closing)",
+                          stats.count_sum(stats.dish_counter) - stats.count_sum(stats.billed_dish_counter)])
+    pretty_table.add_row(["Part of not billed dishes",
+                          round((stats.count_sum(stats.dish_counter) - stats.count_sum(stats.billed_dish_counter)) /
+                                stats.count_sum(stats.dish_counter), 3)])
+
+    print(pretty_table)
+
     # for event in restaurant_model.next_events:
