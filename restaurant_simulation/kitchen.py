@@ -26,11 +26,11 @@ class Cooker:
         # cooking_time = expovariate(1 / self.cooking_time)
         cooking_time = uniform(10 * 60, 20 * 60)
         st.cook_time.append(cooking_time)
-        st.cooker_hours[self.id] += cooking_time
+        st.cooker_hours[self.id][model.current_request_interval()] += cooking_time
         model.restaurant.waiting_dishes.remove(dish)
         model.next_events.append(Event(model.global_time + cooking_time, DishEvent(dish, self)))
 
-    def __init__(self, cooking_time):
+    def __init__(self, cooking_time, intervals):
         """
         Constructor for waiters in a restaurant_simulation
         :param cooking_time: average time to cook a dish
@@ -38,7 +38,10 @@ class Cooker:
         self.cooking_time = cooking_time
         self.available = True
         self.id = next(self._ids)
-        st.cooker_hours[self.id] = 0
+        st.cooker_hours[self.id] = {}
+
+        for interval in intervals:
+            st.cooker_hours[self.id][interval] = 0
 
 
 class CookerCallEvent:

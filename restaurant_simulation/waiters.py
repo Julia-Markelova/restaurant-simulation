@@ -61,7 +61,7 @@ class Waiter:
             Event(model.global_time + service_time, WaiterFreeEvent(self, request)))
 
         st.service_time.append(round(service_time))
-        st.waiter_hours[self.id] += round(service_time)
+        st.waiter_hours[self.id][model.current_request_interval()] += round(service_time)
         request.waiting_start_time = model.global_time + service_time
 
     def deliver(self, model, dish):
@@ -69,7 +69,7 @@ class Waiter:
         model.restaurant.ready_dishes.remove(dish)
         delivery_time = expovariate(1 / model.restaurant.delivery_time)  # time to deliver food
         st.delivery_time.append(delivery_time)
-        st.waiter_hours[self.id] += round(delivery_time)
+        st.waiter_hours[self.id][model.current_request_interval()] += round(delivery_time)
         model.next_events.append(Event(model.global_time + delivery_time,
                                        WaiterFreeEvent(self, dish.request, dish)))
 
@@ -104,13 +104,13 @@ class Waiter:
             leaving.state = RequestState.OK
             service_time = expovariate(1 / self.service_time)
             st.service_time.append(service_time)
-            st.waiter_hours[self.id] += round(service_time)
+            st.waiter_hours[self.id][model.current_request_interval()] += round(service_time)
             model.next_events.append(Event(model.global_time + service_time,
                                            WaiterFreeEvent(self, leaving)))
             model.next_events.append(Event(model.global_time + service_time,
                                            TableFreeEvent(leaving.table)))
 
-    def __init__(self, service_time):
+    def __init__(self, service_time, intervals):
         """
         Constructor for waiters in a restaurant_simulation
         :param service_time: average time to take an order
@@ -118,7 +118,10 @@ class Waiter:
         self.service_time = service_time
         self.id = next(self._ids)
         self.state = WaiterState.FREE
-        st.waiter_hours[self.id] = 0
+        st.waiter_hours[self.id] = {}
+
+        for interval in intervals:
+            st.waiter_hours[self.id][interval] = 0
 
 
 class Dish:

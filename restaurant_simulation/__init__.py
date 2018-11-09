@@ -29,23 +29,41 @@ if __name__ == '__main__':
 
     print(pretty_table)
 
-    pretty_table = PrettyTable(["Waiter id", "Load"])
+    header = ["Waiter id"]
+    header.extend(
+        [utils.human_readable_time(period.fromInterval)
+         + "-"
+         + utils.human_readable_time(period.toInterval) for period
+         in restaurant_model.intervals])
+    header.append("Total")
 
-    for key, value in stats.worker_load(stats.waiter_hours,
-                                        restaurant_model.global_time - restaurant_model.restaurant.work_time_from) \
-            .items():
-        pretty_table.add_row([key, value])
+    pretty_table = PrettyTable(header)
 
-    print(pretty_table)
+    for key, value in stats.multi_period_worker_load(stats.waiter_hours).items():
+        row = [key]
+        row.extend(value)
+        row.append(stats.total_worker_load(key, stats.waiter_hours))
+        pretty_table.add_row(row)
 
-    pretty_table = PrettyTable(["Cooker id", "Load"])
+    print(pretty_table.get_string(title="Load by period"))
 
-    for key, value in stats.worker_load(stats.cooker_hours,
-                                        restaurant_model.global_time - restaurant_model.restaurant.work_time_from) \
-            .items():
-        pretty_table.add_row([key, value])
+    header = ["Cooker id"]
+    header.extend(
+        [utils.human_readable_time(period.fromInterval)
+         + "-"
+         + utils.human_readable_time(period.toInterval) for period
+         in restaurant_model.intervals])
+    header.append("Total")
 
-    print(pretty_table)
+    pretty_table = PrettyTable(header)
+
+    for key, value in stats.multi_period_worker_load(stats.cooker_hours).items():
+        row = [key]
+        row.extend(value)
+        row.append(stats.total_worker_load(key, stats.cooker_hours))
+        pretty_table.add_row(row)
+
+    print(pretty_table.get_string(title="Load by period"))
 
     pretty_table = PrettyTable(["Measure", "Value"])
     pretty_table.add_row(["Missed the table", stats.no_seat_counter])

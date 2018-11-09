@@ -8,7 +8,7 @@ from restaurant_simulation import kitchen, waiters
 
 
 class Restaurant:
-    def __init__(self, params):
+    def __init__(self, params, intervals):
         """
         Initializing restaurant_simulation with custom parameters
         :param params: parsed json file
@@ -24,10 +24,10 @@ class Restaurant:
                 self.tables.append(Table(table_class['size']))
 
         for index in range(0, params['waiters']):
-            self.waiters.append(waiters.Waiter(params['service_time'] * 60))
+            self.waiters.append(waiters.Waiter(params['service_time'] * 60, intervals))
 
         for index in range(0, params['cookers']):
-            self.cookers.append(kitchen.Cooker(params['cooking_time'] * 60))
+            self.cookers.append(kitchen.Cooker(params['cooking_time'] * 60, intervals))
 
         self.eating_time = params['restaurant_mode']['eating_time'] * 60
         self.waiting_time = params['waiting_time'] * 60

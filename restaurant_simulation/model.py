@@ -35,7 +35,8 @@ class Model:
         """
         Executing events while they are in the system.
         """
-        while self.global_time < self.restaurant.work_time_to or self.next_events and not self.restaurant.strict_close:
+        while self.global_time < self.restaurant.work_time_to or self.next_events and \
+                not self.restaurant.strict_close:
             interval = self.current_request_interval()
 
             if interval and interval.fromInterval == self.global_time and self.current_request_mean() != 0:
@@ -57,16 +58,13 @@ class Model:
                      human_readable_date_time(self.global_time))
 
     def request_interval(self, time):
-        maybe_interval = list(
+        suitable_intervals = list(
             filter(
-                lambda interval: interval.fromInterval <= time <= interval.toInterval,
+                lambda interval: interval.fromInterval <= time,
                 self.intervals)
         )
 
-        if maybe_interval:
-            return maybe_interval[0]
-        else:
-            return None
+        return max(suitable_intervals, key=lambda interval: interval.fromInterval)
 
     def current_request_interval(self):
         return self.request_interval(self.global_time)
@@ -87,12 +85,12 @@ class Model:
         :param data: json file with params
         """
         params = json.load(data)
-        self.restaurant = Restaurant(params)
-        self.global_time = self.restaurant.work_time_from
         self.intervals = []
 
         for item in params['restaurant_mode']['attendance']:
             self.intervals.append(RequestInterval(params['restaurant_mode']['average_per_day'], item))
 
+        self.restaurant = Restaurant(params, self.intervals)
+        self.global_time = self.restaurant.work_time_from
         self.class_probability = params['restaurant_mode']['class_probability']
         self.next_events = []
