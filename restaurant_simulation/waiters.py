@@ -30,6 +30,7 @@ class Waiter:
         :param request:
         """
         self.state = WaiterState.SERVICING
+        st.request_waiting[request.id] += model.global_time - request.waiting_start_time
         request.state = RequestState.OK  # because request already has a waiter
         logging.info("%s: Waiter %d is started servicing request %d",
                      human_readable_date_time(model.global_time),
@@ -61,6 +62,7 @@ class Waiter:
 
         st.service_time.append(round(service_time))
         st.waiter_hours[self.id] += round(service_time)
+        request.waiting_start_time = model.global_time + service_time
 
     def deliver(self, model, dish):
         self.state = WaiterState.DELIVERING_DISH
@@ -70,6 +72,11 @@ class Waiter:
         st.waiter_hours[self.id] += round(delivery_time)
         model.next_events.append(Event(model.global_time + delivery_time,
                                        WaiterFreeEvent(self, dish.request, dish)))
+
+        if dish.request.state != RequestState.EATING:
+            st.request_waiting[dish.request.id] += model.global_time + delivery_time - dish.request.waiting_start_time
+
+        dish.request.state = RequestState.EATING
         model.next_events.append(
             Event(
                 model.global_time + delivery_time + expovariate(1 / model.restaurant.eating_time),
@@ -91,6 +98,7 @@ class Waiter:
         if waiting_for_bill:
             self.state = WaiterState.BILLING
             leaving = waiting_for_bill[0]
+            st.request_waiting[leaving.id] += model.global_time - leaving.waiting_start_time
             logging.info("%s: Request %d is billing by waiter %d", human_readable_date_time(model.global_time),
                          leaving.id, self.id)
             leaving.state = RequestState.OK

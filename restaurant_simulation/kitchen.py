@@ -5,12 +5,12 @@ Cooker's logic is here.
 import logging
 import sys
 from itertools import count
-from random import expovariate, uniform
+from random import uniform
 
+from restaurant_simulation import stats as st
 from restaurant_simulation.event import Event
 from restaurant_simulation.states import WaiterState
 from restaurant_simulation.utils import human_readable_date_time
-from restaurant_simulation import stats as st
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
@@ -24,7 +24,7 @@ class Cooker:
                      human_readable_date_time(model.global_time),
                      self.id, dish.id, dish.request.id)
         # cooking_time = expovariate(1 / self.cooking_time)
-        cooking_time = uniform(10*60, 20*60)
+        cooking_time = uniform(10 * 60, 20 * 60)
         st.cook_time.append(cooking_time)
         st.cooker_hours[self.id] += cooking_time
         model.restaurant.waiting_dishes.remove(dish)
@@ -81,7 +81,8 @@ class DishEvent:
             waiter.deliver(model, self.dish)
         else:
             logging.info("%s: No free waiter for cooker %d  and dish %d for request %d",
-                         human_readable_date_time(model.global_time), self.cooker.id, self.dish.id, self.dish.request.id)
+                         human_readable_date_time(model.global_time), self.cooker.id, self.dish.id,
+                         self.dish.request.id)
 
         model.next_events.append(Event(model.global_time, CookerFreeEvent(self.cooker, self.dish)))
 

@@ -38,7 +38,7 @@ class Model:
         while self.global_time < self.restaurant.work_time_to or self.next_events and not self.restaurant.strict_close:
             interval = self.current_request_interval()
 
-            if interval.fromInterval == self.global_time and self.current_request_mean() != 0:
+            if interval and interval.fromInterval == self.global_time and self.current_request_mean() != 0:
                 self.next_events.append(
                     Event(
                         self.global_time,
@@ -57,11 +57,16 @@ class Model:
                      human_readable_date_time(self.global_time))
 
     def request_interval(self, time):
-        return list(
+        maybe_interval = list(
             filter(
                 lambda interval: interval.fromInterval <= time <= interval.toInterval,
                 self.intervals)
-        )[0]
+        )
+
+        if maybe_interval:
+            return maybe_interval[0]
+        else:
+            return None
 
     def current_request_interval(self):
         return self.request_interval(self.global_time)

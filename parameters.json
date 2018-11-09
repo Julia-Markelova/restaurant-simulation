@@ -9,8 +9,8 @@
       "count": 10
     }
   ],
-  "waiters": 7,
-  "cookers": 7,
+  "waiters": 20,
+  "cookers": 20,
   "restaurant_mode": {
     "average_per_day": 100,
     "work_time": {
@@ -18,7 +18,7 @@
       "to": 22,
       "last_entrance_time": 21,
       "over_work_time_limit": 0,
-      "strict_close": "True"
+      "strict_close": "False"
     },
     "attendance": [
       {

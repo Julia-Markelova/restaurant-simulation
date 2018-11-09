@@ -30,6 +30,8 @@ class Request:
         :param reorder_probability: float describing probability of on more order
         """
         self.id = next(self._ids)
+        self.waiting_start_time = 0
+        st.request_waiting[self.id] = 0
         self.size = size
         self.table = None
         self.state = RequestState.OK
@@ -63,6 +65,8 @@ class EatingFinishEvent:
             waiters = list(filter(lambda wait: wait.state == WaiterState.FREE, model.restaurant.waiters))
             reorder = choices([False, True],
                               [1 - self.request.reorder_probability, self.request.reorder_probability])[0]
+
+            self.request.waiting_start_time = model.global_time
 
             if reorder and model.global_time <= model.restaurant.last_entrance_time:
                 self.request.state = RequestState.WAITING_FOR_WAITER
@@ -161,6 +165,7 @@ class RequestEvent:
                 )
 
             else:
+                self.request.waiting_start_time = model.global_time
                 model.next_events.append(
                     e.Event(model.global_time + expovariate(1 / model.restaurant.thinking_time),
                             w.WaiterEvent(self.request)))

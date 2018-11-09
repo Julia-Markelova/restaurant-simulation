@@ -9,6 +9,7 @@ class RequestState(Enum):
     WAITING_FOR_WAITER = auto()
     LEAVING_BAD_MENU = auto()
     OK = auto()
+    EATING = auto()
     WAITING_FOR_BILL = auto()
 
 
