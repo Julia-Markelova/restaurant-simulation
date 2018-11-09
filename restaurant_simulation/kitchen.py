@@ -24,7 +24,7 @@ class Cooker:
                      human_readable_date_time(model.global_time),
                      self.id, dish.id, dish.request.id)
         # cooking_time = expovariate(1 / self.cooking_time)
-        cooking_time = round(uniform(10*60, 20*60))
+        cooking_time = uniform(10*60, 20*60)
         st.cook_time.append(cooking_time)
         st.cooker_hours[self.id] += cooking_time
         model.restaurant.waiting_dishes.remove(dish)

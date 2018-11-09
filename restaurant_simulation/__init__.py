@@ -8,8 +8,8 @@ if __name__ == '__main__':
     restaurant_model = model.Model(open('parameters.json'))
     restaurant_model.run()
 
-
     pretty_table = PrettyTable(["Measure", "Value"])
+
     pretty_table.add_row(["Average stay time (no leave)",
                           stats.avg_stay_time(stats.stay_times_normal_leave)])
     pretty_table.add_row(["Average stay time (dislike menu)",

@@ -48,5 +48,3 @@ def worker_load(work_hours, day_len):
         return {k: round(v / day_len, 3) for k, v in work_hours.items()}
 
 # TODO: closing strategy
-# TODO: round delete
-# TODO: events in time interval

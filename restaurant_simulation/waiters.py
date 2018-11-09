@@ -51,11 +51,11 @@ class Waiter:
 
         for dish in range(dish_count):
             model.next_events.append(
-                Event(model.global_time + round(service_time), CookerCallEvent(Dish(request)))
+                Event(model.global_time + service_time, CookerCallEvent(Dish(request)))
             )
 
         model.next_events.append(
-            Event(model.global_time + round(service_time), WaiterFreeEvent(self, request)))
+            Event(model.global_time + service_time, WaiterFreeEvent(self, request)))
 
         st.service_time.append(round(service_time))
         st.waiter_hours[self.id] += round(service_time)
@@ -63,14 +63,14 @@ class Waiter:
     def deliver(self, model, dish):
         self.state = WaiterState.DELIVERING_DISH
         model.restaurant.ready_dishes.remove(dish)
-        delivery_time = round(expovariate(1 / model.restaurant.delivery_time))  # time to deliver food
+        delivery_time = expovariate(1 / model.restaurant.delivery_time)  # time to deliver food
         st.delivery_time.append(delivery_time)
         st.waiter_hours[self.id] += round(delivery_time)
         model.next_events.append(Event(model.global_time + delivery_time,
                                        WaiterFreeEvent(self, dish.request, dish)))
         model.next_events.append(
             Event(
-                model.global_time + round(delivery_time + expovariate(1 / model.restaurant.eating_time)),
+                model.global_time + delivery_time + expovariate(1 / model.restaurant.eating_time),
                 vis.EatingFinishEvent(dish)
             )
         )
@@ -92,7 +92,7 @@ class Waiter:
             logging.info("%s: Request %d is billing by waiter %d", human_readable_date_time(model.global_time),
                          leaving.id, self.id)
             leaving.state = RequestState.OK
-            service_time = round(expovariate(1 / self.service_time))
+            service_time = expovariate(1 / self.service_time)
             st.service_time.append(service_time)
             st.waiter_hours[self.id] += round(service_time)
             model.next_events.append(Event(model.global_time + service_time,
@@ -141,7 +141,7 @@ class WaiterEvent:
         else:
             self.request.state = RequestState.WAITING_FOR_WAITER
             model.next_events.append(
-                Event(model.global_time + round(expovariate(1 / model.restaurant.waiting_time)),
+                Event(model.global_time + expovariate(1 / model.restaurant.waiting_time),
                       vis.LeaveEvent(self.request)))
 
     def __init__(self, request):

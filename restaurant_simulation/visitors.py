@@ -36,6 +36,7 @@ class Request:
         self.dish_count = 0
         self.reorder_probability = reorder_probability
         self.income_time = income_time
+        self.reorder = False
 
 
 class EatingFinishEvent:
@@ -67,7 +68,12 @@ class EatingFinishEvent:
                 logging.info("%s: Request %d will make a reorder.",
                              human_readable_date_time(model.global_time),
                              self.request.id)
-                st.reorder_counter += 1
+
+                if not self.request.reorder:
+                    st.reorder_counter += 1
+
+                self.request.reorder = True
+
                 if waiters:
                     waiter = waiters[0]
                     logging.info("%s: Waiter %d is taking a reorder of request %d.",
@@ -147,13 +153,13 @@ class RequestEvent:
             if leaving:
                 self.request.state = RequestState.LEAVING_BAD_MENU
                 model.next_events.append(
-                    e.Event(model.global_time + round(expovariate(1 / model.restaurant.thinking_time)),
+                    e.Event(model.global_time + expovariate(1 / model.restaurant.thinking_time),
                             LeaveEvent(self.request))
                 )
 
             else:
                 model.next_events.append(
-                    e.Event(model.global_time + round(expovariate(1 / model.restaurant.thinking_time)),
+                    e.Event(model.global_time + expovariate(1 / model.restaurant.thinking_time),
                             w.WaiterEvent(self.request)))
         else:
             st.no_seat_counter += 1
@@ -166,7 +172,7 @@ class RequestEvent:
         Increment counter of requests
         """
         if model.global_time < model.restaurant.last_entrance_time:
-            next_request_time = round(expovariate(1 / model.current_request_mean()))
+            next_request_time = expovariate(1 / model.current_request_mean())
             model.next_events.append(e.Event(model.global_time + next_request_time,
                                              RequestEvent(Request(people_count,
                                                                   model.restaurant.reorder_probability,

@@ -33,7 +33,8 @@ class Model:
         """
         while self.global_time < self.restaurant.work_time_to or self.next_events:
 
-            for event in filter(lambda ev: ev.when <= self.global_time, self.next_events):
+            for event in sorted(filter(lambda ev: ev.when <= self.global_time, self.next_events),
+                                key=lambda ev: ev.when):
                 event.handle(self)
                 self.next_events.remove(event)
 
