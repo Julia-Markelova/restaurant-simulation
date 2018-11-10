@@ -54,6 +54,7 @@ class EatingFinishEvent:
         """
         self.request.dish_count -= 1
         self.request.state = RequestState.OK
+        self.request.waiting_start_time = model.global_time
         logging.info("%s: Request %d ate a dish %d. Remaining dishes: %d",
                      human_readable_date_time(model.global_time),
                      self.request.id,
@@ -67,10 +68,9 @@ class EatingFinishEvent:
             reorder = choices([False, True],
                               [1 - self.request.reorder_probability, self.request.reorder_probability])[0]
 
-            self.request.waiting_start_time = model.global_time
-
             if reorder and model.global_time <= model.restaurant.last_entrance_time:
                 self.request.state = RequestState.WAITING_FOR_WAITER
+                self.request.waiting_start_time = model.global_time
                 logging.info("%s: Request %d will make a reorder.",
                              human_readable_date_time(model.global_time),
                              self.request.id)
