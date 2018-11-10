@@ -22,6 +22,7 @@ class RequestInterval:
         """
         self.fromInterval = item['from'] * 60 * 60
         self.toInterval = item['to'] * 60 * 60
+        self. last = item['last'] == "True"
 
         if item['part'] != 0:
             self.interval = round((self.toInterval - self.fromInterval) / (total * item['part']))
@@ -53,10 +54,19 @@ class Model:
                 self.next_events.remove(event)
 
             length = len(
-                list(filter(lambda t: not t.available and t.owner.state == RequestState.WAITING_FOR_WAITER, self.restaurant.tables))
+                list(filter(lambda t: not t.available and t.owner.state == RequestState.WAITING_FOR_WAITER,
+                            self.restaurant.tables))
             )
-
             st.avg_waiting_queue[length] += 1
+
+            length = len(
+                list(filter(lambda t: not t.available and t.owner.state == RequestState.WAITING_FOR_BILL,
+                            self.restaurant.tables))
+            )
+            st.avg_billing_queue[length] += 1
+
+            length = len(self.restaurant.ready_dishes)
+            st.avg_dishes_queue[length] += 1
 
             self.global_time += 1
 

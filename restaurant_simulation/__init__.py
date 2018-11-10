@@ -30,41 +30,35 @@ if __name__ == '__main__':
                           stats.avg_len_dict(stats.avg_waiting_queue,
                                              restaurant_model.restaurant.work_time_to
                                              - restaurant_model.restaurant.work_time_from)])
+    pretty_table.add_row(["Average waiting for a bill queue length",
+                          stats.avg_len_dict(stats.avg_billing_queue,
+                                             restaurant_model.restaurant.work_time_to
+                                             - restaurant_model.restaurant.work_time_from)])
+    pretty_table.add_row(["Average ready dishes queue length",
+                          stats.avg_len_dict(stats.avg_dishes_queue,
+                                             restaurant_model.restaurant.work_time_to
+                                             - restaurant_model.restaurant.work_time_from)])
 
     print(pretty_table)
-
-    header = ["Waiter id"]
-    header.extend(
-        [utils.human_readable_time(period.fromInterval)
-         + "-"
-         + utils.human_readable_time(period.toInterval) for period
-         in restaurant_model.intervals])
-    header.append("Total")
-
-    pretty_table = PrettyTable(header)
-
-    for key, value in stats.multi_period_worker_load(stats.waiter_hours).items():
-        row = [key]
-        row.extend(value)
-        row.append(stats.total_worker_load(key, stats.waiter_hours))
-        pretty_table.add_row(row)
-
-    print(pretty_table.get_string(title="Load by period"))
 
     header = ["Cooker id"]
     header.extend(
         [utils.human_readable_time(period.fromInterval)
          + "-"
-         + utils.human_readable_time(period.toInterval) for period
+         + utils.human_readable_time(period.toInterval)
+         if not period.last
+         else utils.human_readable_time(period.fromInterval)
+         + "-" + utils.human_readable_date_time(restaurant_model.global_time)
+         for period
          in restaurant_model.intervals])
     header.append("Total")
 
     pretty_table = PrettyTable(header)
 
-    for key, value in stats.multi_period_worker_load(stats.cooker_hours).items():
+    for key, value in stats.multi_period_worker_load(stats.cooker_hours, restaurant_model.global_time).items():
         row = [key]
         row.extend(value)
-        row.append(stats.total_worker_load(key, stats.cooker_hours))
+        row.append(stats.total_worker_load(key, stats.cooker_hours, restaurant_model.global_time))
         pretty_table.add_row(row)
 
     print(pretty_table.get_string(title="Load by period"))
@@ -90,5 +84,25 @@ if __name__ == '__main__':
                                 stats.count_sum(stats.dish_counter), 3)])
 
     print(pretty_table)
+
+    header = ["Waiter id"]
+    header.extend(
+        [utils.human_readable_time(period.fromInterval)
+         + "-"
+         + utils.human_readable_time(period.toInterval) if not period.last
+         else utils.human_readable_time(period.fromInterval)
+         + "-" + utils.human_readable_date_time(restaurant_model.global_time) for period
+         in restaurant_model.intervals])
+    header.append("Total")
+
+    pretty_table = PrettyTable(header)
+
+    for key, value in stats.multi_period_worker_load(stats.waiter_hours, restaurant_model.global_time).items():
+        row = [key]
+        row.extend(value)
+        row.append(stats.total_worker_load(key, stats.waiter_hours, restaurant_model.global_time))
+        pretty_table.add_row(row)
+
+    print(pretty_table.get_string(title="Load by period"))
 
     # for event in restaurant_model.next_events:

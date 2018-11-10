@@ -62,6 +62,7 @@ class Waiter:
 
         st.service_time.append(round(service_time))
         st.waiter_hours[self.id][model.current_request_interval()] += round(service_time)
+
         request.waiting_start_time = model.global_time + service_time
 
     def deliver(self, model, dish):
@@ -69,12 +70,15 @@ class Waiter:
         model.restaurant.ready_dishes.remove(dish)
         delivery_time = expovariate(1 / model.restaurant.delivery_time)  # time to deliver food
         st.delivery_time.append(delivery_time)
+
         st.waiter_hours[self.id][model.current_request_interval()] += round(delivery_time)
+
         model.next_events.append(Event(model.global_time + delivery_time,
                                        WaiterFreeEvent(self, dish.request, dish)))
 
         if dish.request.state != RequestState.EATING:
-            st.request_waiting[dish.request.id] += model.global_time + delivery_time - dish.request.waiting_start_time
+            st.request_waiting[dish.request.id] += \
+                model.global_time + delivery_time - dish.request.waiting_start_time
 
         dish.request.state = RequestState.EATING
         model.next_events.append(
@@ -99,12 +103,14 @@ class Waiter:
             self.state = WaiterState.BILLING
             leaving = waiting_for_bill[0]
             st.request_waiting[leaving.id] += model.global_time - leaving.waiting_start_time
-            logging.info("%s: Request %d is billing by waiter %d", human_readable_date_time(model.global_time),
+            logging.info("%s: Request %d is billing by waiter %d",
+                         human_readable_date_time(model.global_time),
                          leaving.id, self.id)
             leaving.state = RequestState.OK
             service_time = expovariate(1 / self.service_time)
             st.service_time.append(service_time)
             st.waiter_hours[self.id][model.current_request_interval()] += round(service_time)
+
             model.next_events.append(Event(model.global_time + service_time,
                                            WaiterFreeEvent(self, leaving)))
             model.next_events.append(Event(model.global_time + service_time,
