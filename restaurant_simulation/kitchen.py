@@ -19,6 +19,12 @@ class Cooker:
     _ids = count(1)
 
     def cook(self, model, dish):
+        """
+        Cooker isn't available for cooking time.
+        Dish will be ready in cooking time.
+        :param model: current state of model
+        :param dish: dish obj which cooker is going to cook
+        """
         self.available = False
         logging.info("%s: Cooker %d started cooking dish %d for request %d",
                      human_readable_date_time(model.global_time),
@@ -33,13 +39,15 @@ class Cooker:
     def __init__(self, cooking_time, intervals):
         """
         Constructor for waiters in a restaurant_simulation
-        :param cooking_time: average time to cook a dish
+        :param cooking_time: int, average time to cook a dish
+        :param intervals: interval obj, to initialize a map to calculate load
         """
         self.cooking_time = cooking_time
         self.available = True
         self.id = next(self._ids)
         st.cooker_hours[self.id] = {}
 
+        # TODO: replace with defaultdict()
         for interval in intervals:
             st.cooker_hours[self.id][interval] = 0
 
@@ -47,6 +55,11 @@ class Cooker:
 class CookerCallEvent:
 
     def handle(self, model):
+        """
+        Append ordered dishes to the queue.
+        If there are free cookers, one of them will cook the dish.
+        :param model: current state of model
+        """
         model.restaurant.waiting_dishes.append(self.dish)
         cookers = list(filter(lambda c: c.available, model.restaurant.cookers))
         dish = model.restaurant.waiting_dishes[0]
@@ -61,10 +74,20 @@ class CookerCallEvent:
 
 class CookerFreeEvent:
     def __init__(self, cooker, dish):
+        """
+        Constructor for the CookerFreeEvent
+        :param cooker: cooker obj, who is finishing cook
+        :param dish: dish obj, that cooker cooked
+        """
         self.cooker = cooker
         self.dish = dish
 
     def handle(self, model):
+        """
+        Make cooker available again.
+        If there are dishes to cook, cooker will be cook them now.
+        :param model: current state of model
+        """
         waiting_dishes = model.restaurant.waiting_dishes
         self.cooker.available = True
         logging.info("%s: Cooker %d finished cooking dish %d for request %d",
@@ -75,7 +98,14 @@ class CookerFreeEvent:
 
 
 class DishEvent:
+
     def handle(self, model):
+        """
+        Ready dish appends to ready dishes queue.
+        If there any free waiter, he will deliver this dish now.
+        CookerFreeEvent is called here.
+        :param model: current state of model
+        """
         waiters = list(filter(lambda wait: wait.state == WaiterState.FREE, model.restaurant.waiters))
         model.restaurant.ready_dishes.append(self.dish)
 
@@ -90,5 +120,9 @@ class DishEvent:
         model.next_events.append(Event(model.global_time, CookerFreeEvent(self.cooker, self.dish)))
 
     def __init__(self, dish, cooker):
+        """
+        :param dish: ready dish obj
+        :param cooker: cooker obj, to make him available
+        """
         self.dish = dish
         self.cooker = cooker

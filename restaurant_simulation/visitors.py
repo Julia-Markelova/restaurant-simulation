@@ -28,6 +28,7 @@ class Request:
         dish_count: count of ordered dishes
         :param size: how many people are coming
         :param reorder_probability: float describing probability of on more order
+        :param income_time: int, time of request's creating
         """
         self.id = next(self._ids)
         self.waiting_start_time = 0
@@ -134,7 +135,7 @@ class RequestEvent:
     def handle(self, model):
         """
         Generating new request (exponential with custom meaning) with N people.
-        Take a table and waiting for the waiter.
+        Take a table and waiting for the waiter or check menu and leave with leaving probability.
         If there are no free table, request is going to leave.
         Increment counter of visitors or lost.
         :param model: current state of model

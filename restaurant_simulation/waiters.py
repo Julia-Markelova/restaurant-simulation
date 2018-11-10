@@ -25,6 +25,7 @@ class Waiter:
         Change waiter's state to SERVICING, generate dishes for each human in request's size.
         Call CookerCallEvent for each generated dish.
         After that generate WaiterFreeEvent.
+        Increase working time.
         :param self: who will work
         :param model: current state of model
         :param request:
@@ -66,6 +67,14 @@ class Waiter:
         request.waiting_start_time = model.global_time + service_time
 
     def deliver(self, model, dish):
+        """
+        Change waiter's state to DELIVER.
+        Remove ready dish from dish queue.
+        Calculate request's waiting time.
+        Append WaiterFree and EatingFinish events.
+        :param model: current state of model
+        :param dish: dish obj to know for whom deliver
+        """
         self.state = WaiterState.DELIVERING_DISH
         model.restaurant.ready_dishes.remove(dish)
         delivery_time = expovariate(1 / model.restaurant.delivery_time)  # time to deliver food
@@ -89,6 +98,13 @@ class Waiter:
         )
 
     def invoice(self, model):
+        """
+        Check if somebody is waiting for a bill.
+        If somebody is waiting, waiter change state to BILLINg and request's state to OK.
+        Increase working hours.
+        Call WaiterFree and TableFree events.
+        :param model: current state of model
+        """
         waiting_for_bill = list(
             map(
                 lambda t: t.owner,
@@ -170,6 +186,11 @@ class WaiterEvent:
 class WaiterFreeEvent:
 
     def handle(self, model):
+        """
+        Check if there are ready dishes, if not check if there are requests waiting for waiter,
+        if not check if there requests waiting for bill, if not become free.
+        :param model: current state of model
+        """
 
         if self.waiter.state == WaiterState.DELIVERING_DISH:
             logging.info("%s: Waiter %d delivered dish %d to request %d",
@@ -218,6 +239,13 @@ class TableFreeEvent:
         self.table = table
 
     def handle(self, model):
+        """
+        Billed dishes counter increased.
+        Serviced counter incremented.
+        Stay times calculated.
+        Free table.
+        :param model: current state of model
+        """
         logging.info("%s: Request %d is leaving table %d",
                      human_readable_date_time(model.global_time),
                      self.table.owner.id,

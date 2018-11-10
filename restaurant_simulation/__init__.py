@@ -1,3 +1,6 @@
+"""
+Just for pretty print
+"""
 from prettytable import PrettyTable
 
 if __name__ == '__main__':

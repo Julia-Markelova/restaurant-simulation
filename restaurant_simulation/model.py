@@ -17,8 +17,9 @@ class RequestInterval:
     def __init__(self, total, item):
         """
         Calculating average intervals between requests according to current time in SECONDS
-        :param total: how many people are coming every day (average meaning)
-        :param item: consists of time interval and a part of people which will come in this interval
+        :param total: int, how many people are coming every day (average meaning)
+        :param item: json part,
+        consists of time interval and a part of people which will come in this interval
         """
         self.fromInterval = item['from'] * 60 * 60
         self.toInterval = item['to'] * 60 * 60
@@ -34,7 +35,7 @@ class Model:
 
     def run(self):
         """
-        Executing events while they are in the system.
+        Executing events according to closing strategy.
         """
         while self.global_time < self.restaurant.work_time_to or self.next_events and \
                 not self.restaurant.strict_close:
@@ -48,23 +49,27 @@ class Model:
                     )
                 )
 
+            # choose the first event handled during current second
             for event in sorted(filter(lambda ev: ev.when <= self.global_time, self.next_events),
                                 key=lambda ev: ev.when):
                 event.handle(self)
                 self.next_events.remove(event)
 
+            # saving lengths of queues in system
             length = len(
                 list(filter(lambda t: not t.available and t.owner.state == RequestState.WAITING_FOR_WAITER,
                             self.restaurant.tables))
             )
             st.avg_waiting_queue[length] += 1
 
+            # saving lengths of queues in system
             length = len(
                 list(filter(lambda t: not t.available and t.owner.state == RequestState.WAITING_FOR_BILL,
                             self.restaurant.tables))
             )
             st.avg_billing_queue[length] += 1
 
+            # saving lengths of queues in system
             length = len(self.restaurant.ready_dishes)
             st.avg_dishes_queue[length] += 1
 
@@ -83,6 +88,9 @@ class Model:
         return max(suitable_intervals, key=lambda interval: interval.fromInterval)
 
     def current_request_interval(self):
+        """
+        :return: interval obj according to current time
+        """
         return self.request_interval(self.global_time)
 
     def current_request_mean(self):
@@ -90,7 +98,6 @@ class Model:
         :return: average interval in seconds
         """
         current_interval = self.current_request_interval()
-
         return current_interval.interval
 
     def __init__(self, data):
