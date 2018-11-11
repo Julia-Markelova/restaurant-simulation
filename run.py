@@ -18,32 +18,32 @@ def confidence_interval(values, do_round=True):
         return (a + b) / 2, (b - a) / 2
 
 
-avg_times_normal_leave = [] #
-avg_times_bad_menu_leave = [] #
-avg_times_long_waiting_leave = [] #
+avg_times_normal_leave = []
+avg_times_bad_menu_leave = []
+avg_times_long_waiting_leave = []
 
-avg_cook_time = [] #
-avg_service_time = [] #
-avg_delivery_time = [] #
-avg_dish_count = [] #
-avg_total_dish_count = [] #
-avg_billed_dish_count = [] #
+avg_cook_time = []
+avg_service_time = []
+avg_delivery_time = []
+avg_dish_count = []
+avg_total_dish_count = []
+avg_billed_dish_count = []
+avg_request_waiting = []
 
-avg_cooker_hours = {}
-avg_waiter_hours = {}
-avg_request_waiting = [] #
+avg_waiting_queue = []
+avg_dishes_queue = []
+avg_billing_queue = []
 
-avg_waiting_queue = [] #
-avg_dishes_queue = [] #
-avg_billing_queue = [] #
+avg_long_waiting_leave_count = []
+avg_serviced_count = []
+avg_seated_count = []
+avg_no_seat_count = []
+avg_reorder_count = []
+avg_disliked_menu_count = []
+avg_total_count = []
 
-avg_long_waiting_leave_count = [] #
-avg_serviced_count = [] #
-avg_seated_count = [] #
-avg_no_seat_count = [] #
-avg_reorder_count = [] #
-avg_disliked_menu_count = [] #
-avg_total_count = [] #
+rest_model = None
+
 
 for i in range(10):
     rest_model = model.Model(open('parameters.json'))
@@ -140,32 +140,32 @@ mean, error = confidence_interval(avg_dishes_queue, False)
 pretty_table.add_row(["Average ready dishes queue length",
                       str(round(mean, 3)) + " ± " + str(round(error, 3))])
 
-mean, error = confidence_interval(avg_long_waiting_leave_count, False)
-pretty_table.add_row(["Average leave count (too long waiting)",
-                      str(round(mean, 3)) + " ± " + str(round(error, 3))])
-
-mean, error = confidence_interval(avg_serviced_count, False)
-pretty_table.add_row(["Average serviced count",
+mean, error = confidence_interval(avg_total_count, False)
+pretty_table.add_row(["Average total request count",
                       str(round(mean, 3)) + " ± " + str(round(error, 3))])
 
 mean, error = confidence_interval(avg_seated_count, False)
 pretty_table.add_row(["Average seated count",
                       str(round(mean, 3)) + " ± " + str(round(error, 3))])
 
-mean, error = confidence_interval(avg_no_seat_count, False)
-pretty_table.add_row(["Average leave count (no free tables)",
+mean, error = confidence_interval(avg_serviced_count, False)
+pretty_table.add_row(["Average serviced count",
                       str(round(mean, 3)) + " ± " + str(round(error, 3))])
 
-mean, error = confidence_interval(avg_reorder_count, False)
-pretty_table.add_row(["Average reorder count",
+mean, error = confidence_interval(avg_long_waiting_leave_count, False)
+pretty_table.add_row(["Average leave count (too long waiting)",
+                      str(round(mean, 3)) + " ± " + str(round(error, 3))])
+
+mean, error = confidence_interval(avg_no_seat_count, False)
+pretty_table.add_row(["Average leave count (no free tables)",
                       str(round(mean, 3)) + " ± " + str(round(error, 3))])
 
 mean, error = confidence_interval(avg_disliked_menu_count, False)
 pretty_table.add_row(["Average leave count (dislike menu)",
                       str(round(mean, 3)) + " ± " + str(round(error, 3))])
 
-mean, error = confidence_interval(avg_total_count, False)
-pretty_table.add_row(["Average total request count",
+mean, error = confidence_interval(avg_reorder_count, False)
+pretty_table.add_row(["Average reorder count",
                       str(round(mean, 3)) + " ± " + str(round(error, 3))])
 
 mean, error = confidence_interval(avg_total_dish_count, False)
@@ -184,3 +184,47 @@ pretty_table.add_row(["Part of not billed dishes",
                       str(round(mean, 3)) + " ± " + str(round(error, 3))])
 
 print(pretty_table)
+
+header = ["Cooker id"]
+header.extend(
+    [utils.human_readable_time(period.fromInterval)
+     + "-"
+     + utils.human_readable_time(period.toInterval)
+     if not period.last
+     else utils.human_readable_time(period.fromInterval)
+          + "-" + utils.human_readable_date_time(rest_model.global_time)
+     for period
+     in rest_model.intervals])
+header.append("Total")
+
+pretty_table = PrettyTable(header)
+
+for key, value in stats.multi_period_worker_load(stats.cooker_hours, rest_model.global_time).items():
+    if key <= len(rest_model.restaurant.cookers):
+        row = [key]
+        row.extend(value)
+        row.append(stats.total_worker_load(key, stats.cooker_hours, rest_model.global_time))
+        pretty_table.add_row(row)
+
+print(pretty_table.get_string(title="Load by period"))
+
+header = ["Waiter id"]
+header.extend(
+    [utils.human_readable_time(period.fromInterval)
+     + "-"
+     + utils.human_readable_time(period.toInterval) if not period.last
+     else utils.human_readable_time(period.fromInterval)
+          + "-" + utils.human_readable_date_time(rest_model.global_time) for period
+     in rest_model.intervals])
+header.append("Total")
+
+pretty_table = PrettyTable(header)
+
+for key, value in stats.multi_period_worker_load(stats.waiter_hours, rest_model.global_time).items():
+    if key <= len(rest_model.restaurant.waiters):
+        row = [key]
+        row.extend(value)
+        row.append(stats.total_worker_load(key, stats.waiter_hours, rest_model.global_time))
+        pretty_table.add_row(row)
+
+print(pretty_table.get_string(title="Load by period"))

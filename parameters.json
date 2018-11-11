@@ -16,7 +16,7 @@
     "work_time": {
       "from": 10,
       "to": 22,
-      "last_entrance_time": 21,
+      "last_entrance_time": 22,
       "over_work_time_limit": 0,
       "strict_close": "True"
     },
