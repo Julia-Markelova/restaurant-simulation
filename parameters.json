@@ -9,48 +9,48 @@
       "count": 10
     }
   ],
-  "waiters": 1,
-  "cookers": 1,
+  "waiters": 20,
+  "cookers": 20,
   "restaurant_mode": {
     "average_per_day": 100,
     "work_time": {
       "from": 10,
       "to": 22,
       "last_entrance_time": 21,
-      "over_work_time_limit": 4,
+      "over_work_time_limit": 0,
       "strict_close": "True"
     },
     "attendance": [
       {
         "from": 10,
         "to": 14,
-        "part": 0.3,
+        "part": 0.2,
         "last": "False"
       },
       {
         "from": 14,
         "to": 19,
-        "part": 0.4,
+        "part": 0.3,
         "last": "False"
       },
       {
         "from": 19,
         "to": 22,
-        "part": 0.3,
+        "part": 0.5,
         "last": "True"
       }
     ],
     "eating_time": 10,
     "class_probability": {
-      "1": 0.1,
-      "2": 0.4,
-      "3": 0.25,
-      "4": 0.25
+      "1": 1,
+      "2": 0,
+      "3": 0,
+      "4": 0
     }
   },
   "cooking_time": 15,
   "service_time": 3,
-  "waiting_time": 40,
+  "waiting_time": 15,
   "delivery_time": 2,
   "thinking_time": 5,
   "leaving_probability": 0.05,

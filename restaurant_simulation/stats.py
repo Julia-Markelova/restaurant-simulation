@@ -85,6 +85,12 @@ def count_sum(list_of_values):
     """
     if list_of_values:
         return reduce(lambda x, y: x + y, list_of_values)
+    else:
+        return 0
+
+
+def non_zero_values(waiting_times):
+    return [value for key, value in waiting_times.items() if value != 0]
 
 
 def avg_waiting_time(waiting_times):
@@ -93,7 +99,7 @@ def avg_waiting_time(waiting_times):
     :param waiting_times: list of waiting times in seconds
     :return: average human readable time of waiting
     """
-    times = [value for key, value in waiting_times.items() if value != 0]
+    times = non_zero_values(waiting_times)
     return human_readable_time(count_avg(times, 0))
 
 
@@ -127,8 +133,6 @@ def total_worker_load(worker_id, worker_hours, close_time):
     return round(sum_seconds / sum_keys, 3) if round(sum_seconds / sum_keys, 3) < 1 else 1
 
 
-# TODO: Yakov, think about it
-# ВОЗМОЖНО ЗДЕСЬ ГОВНО
 def avg_len_dict(a_dict, total):
     a_list = [key * value / total for key, value in a_dict.items()]
     return round(reduce(lambda a, b: a + b, a_list), 6)

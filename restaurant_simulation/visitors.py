@@ -185,7 +185,7 @@ class RequestEvent:
         next_request_time = expovariate(1 / model.current_request_mean())
 
         if model.global_time < model.restaurant.last_entrance_time \
-                and model.request_interval(model.global_time + next_request_time).interval != 0:
+                and model.global_time + next_request_time < model.current_request_interval().toInterval:
             model.next_events.append(e.Event(model.global_time + next_request_time,
                                              RequestEvent(Request(people_count,
                                                                   model.restaurant.reorder_probability,

@@ -23,7 +23,7 @@ class RequestInterval:
         """
         self.fromInterval = item['from'] * 60 * 60
         self.toInterval = item['to'] * 60 * 60
-        self. last = item['last'] == "True"
+        self.last = item['last'] == "True"
 
         if item['part'] != 0:
             self.interval = round((self.toInterval - self.fromInterval) / (total * item['part']))
@@ -57,9 +57,9 @@ class Model:
 
             # saving lengths of queues in system
             length = len(
-                list(filter(lambda t: not t.available and t.owner.state == RequestState.WAITING_FOR_WAITER,
-                            self.restaurant.tables))
-            )
+                list(filter(lambda t: not t.available and
+                                      (t.owner.state == RequestState.WAITING_FOR_BILL
+                                       or t.owner.state == RequestState.WAITING_FOR_WAITER), self.restaurant.tables)))
             st.avg_waiting_queue[length] += 1
 
             # saving lengths of queues in system

@@ -8,4 +8,4 @@ setup(name='restaurant_simulation',
       author_email='usikmarkelova@mail.ru',
       license='Apache-2.0',
       packages=['restaurant_simulation'],
-      zip_safe=False, install_requires=['prettytable'])
+      zip_safe=False, install_requires=['prettytable', 'numpy', 'scipy'])
